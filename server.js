@@ -7,9 +7,9 @@ const { createPool } = require('mysql2/promise');
 const { fillFormFromDb } = require('./fill_form_from_db');
 
 const CONFIG = {
-  PORT: process.env.PORT || 3000,
+  PORT: 3000,
   HTTPS_PORT: process.env.HTTPS_PORT || 443,
-  USE_HTTPS: process.env.USE_HTTPS === 'true',
+  USE_HTTPS: true,
   HTTP_REDIRECT: process.env.HTTP_REDIRECT === 'true',
   SSL_KEY_PATH: process.env.SSL_KEY_PATH || '/etc/letsencrypt/live/your-domain.com/privkey.pem',
   SSL_CERT_PATH: process.env.SSL_CERT_PATH || '/etc/letsencrypt/live/your-domain.com/fullchain.pem',
@@ -182,6 +182,7 @@ function startHttpServer() {
     console.log('\n🔐 CORS Enabled for:');
     console.log('   - https://booking.visad.co.uk');
     console.log('   - https://visad.co.uk');
+    console.log('   - https://doc.visad.co.uk');
     console.log('   - https://vault.visad.co.uk');
     console.log('   - http://localhost:3000');
     console.log('='.repeat(70));
@@ -210,6 +211,7 @@ function startHttpsServer() {
       console.log('\n🔐 CORS Enabled for:');
       console.log('   - https://booking.visad.co.uk');
       console.log('   - https://visad.co.uk');
+      console.log('   - https://doc.visad.co.uk');
       console.log('   - https://vault.visad.co.uk');
       console.log('   - http://localhost:3000');
       console.log('='.repeat(70));

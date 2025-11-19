@@ -15,17 +15,17 @@
  * 10. Updated header as requested.
  */
 
-$(document).ready(function() {
+$(document).ready(function () {
     const urlParams = new URLSearchParams(window.location.search);
     // Admin panel provides ID and Type
-    const recordId = urlParams.get('id'); 
+    const recordId = urlParams.get('id');
     const recordType = urlParams.get('type');
-    
+
     console.log('=== PAGE LOADED ===');
     console.log('URL:', window.location.href);
     console.log('recordId from URL:', recordId, '(type:', typeof recordId, ')');
     console.log('recordType from URL:', recordType);
-    
+
     let recordData = {
         personal: {},
         questions: {}
@@ -34,20 +34,15 @@ $(document).ready(function() {
     console.log(recordData);
     let isFormLocked = false;
 
-    const PDF_FILL_ENDPOINT =
-        (typeof window !== 'undefined' && (window.AUSTRIA_PDF_ENDPOINT || window.PDF_FILL_ENDPOINT)) ||
-        'https://doc.visad.co.uk/api/visa/fill-form';
-    const DEFAULT_TRAVEL_COUNTRY =
-        (typeof window !== 'undefined' && window.DEFAULT_PDF_TRAVEL_COUNTRY) || 'Austria';
 
     // --- Configuration (Copied from user_form.js) ---
     const editablePersonalFields = ['contact_number', 'email', 'address_line_1', 'address_line_2', 'city', 'state_province', 'zip_code', 'country'];
     const mandatoryPersonalFields = ['contact_number', 'email', 'address_line_1', 'city', 'state_province', 'zip_code'];
-    const countries = ["Afghanistan","Albania","Algeria","Andorra","Angola","Antigua and Barbuda","Argentina","Armenia","Australia","Austria","Azerbaijan","Bahamas","Bahrain","Bangladesh","Barbados","Belarus","Belgium","Belize","Benin","Bhutan","Bolivia","Bosnia and Herzegovina","Botswana","Brazil","Brunei","Bulgaria","Burkina Faso","Burundi","Cabo Verde","Cambodia","Cameroon","Canada","Central African Republic","Chad","Chile","China","Colombia","Comoros","Congo, Democratic Republic of the","Congo, Republic of the","Costa Rica","Cote d'Ivoire","Croatia","Cuba","Cyprus","Czech Republic","Denmark","Djibouti","Dominica","Dominican Republic","Ecuador","Egypt","El Salvador","Equatorial Guinea","Eritrea","Estonia","Eswatini","Ethiopia","Fiji","Finland","France","Gabon","Gambia","Georgia","Germany","Ghana","Greece","Grenada","Guatemala","Guinea","Guinea-Bissau","Guyana","Haiti","Honduras","Hungary","Iceland","India","Indonesia","Iran","Iraq","Ireland","Israel","Italy","Jamaica","Japan","Jordan","Kazakhstan","Kenya","Kiribati","Kosovo","Kuwait","Kyrgyzstan","Laos","Latvia","Lebanon","Lesotho","Liberia","Libya","Liechtenstein","Lithuania","Luxembourg","Madagascar","Malawi","Malaysia","Maldives","Mali","Malta","Marshall Islands","Mauritania","Mauritius","Mexico","Micronesia","Moldova","Monaco","Mongolia","Montenegro","Morocco","Mozambique","Myanmar (Burma)","Namibia","Nauru","Nepal","Netherlands","New Zealand","Nicaragua","Niger","Nigeria","North Korea","North Macedonia","Norway","Oman","Pakistan","Palau","Palestine","Panama","Papua New Guinea","Paraguay","Peru","Philippines","Poland","Portugal","Qatar","Romania","Russia","Rwanda","Saint Kitts and Nevis","Saint Lucia","Saint Vincent and the Grenadines","Samoa","San Marino","Sao Tome and Principe","Saudi Arabia","Senegal","Serbia","Seychelles","Sierra Leone","Singapore","Slovakia","Slovenia","Solomon Islands","Somalia","South Africa","South Korea","South Sudan","Spain","Sri Lanka","Sudan","Suriname","Sweden","Switzerland","Syria","Taiwan","Tajikistan","Tanzania","Thailand","Timor-Leste","Togo","Tonga","Trinidad and Tobago","Tunisia","Turkey","Turkmenistan","Tuvalu","Uganda","Ukraine","United Arab Emirates","United Kingdom","United States","Uruguay","Uzbekistan","Vanuatu","Vatican City","Venezuela","Vietnam","Yemen","Zambia","Zimbabwe"];
-    const destinations = [ { country: '🇦🇹 Austria', cities: ['Vienna', 'Salzburg', 'Graz', 'Linz', 'Innsbruck'] }, { country: '🇧🇪 Belgium', cities: ['Brussels', 'Antwerp', 'Ghent', 'Bruges', 'Liège'] }, { country: '🇧🇬 Bulgaria', cities: ['Sofia', 'Plovdiv', 'Varna', 'Burgas', 'Ruse'] }, { country: '🇭🇷 Croatia', cities: ['Zagreb', 'Split', 'Dubrovnik', 'Rijeka', 'Osijek'] }, { country: '🇨🇿 Czech Republic', cities: ['Prague', 'Brno', 'Ostrava', 'Plzeň', 'Liberec'] }, { country: '🇩🇰 Denmark', cities: ['Copenhagen', 'Aarhus', 'Odense', 'Aalborg', 'Esbjerg'] }, { country: '🇪🇪 Estonia', cities: ['Tallinn', 'Tartu', 'Narva', 'Pärnu', 'Kohtla-Järve'] }, { country: '🇫🇮 Finland', cities: ['Helsinki', 'Espoo', 'Tampere', 'Vantaa', 'Oulu'] }, { country: '🇫🇷 France', cities: ['Paris', 'Marseille', 'Lyon', 'Toulouse', 'Nice'] }, { country: '🇩🇪 Germany', cities: ['Berlin', 'Munich', 'Hamburg', 'Cologne', 'Frankfurt'] }, { country: '🇬🇷 Greece', cities: ['Athens', 'Thessaloniki', 'Patras', 'Heraklion', 'Larissa'] }, { country: '🇭🇺 Hungary', cities: ['Budapest', 'Debrecen', 'Szeged', 'Miskolc', 'Pécs'] }, { country: '🇮🇸 Iceland', cities: ['Reykjavík', 'Akureyri', 'Reykjanesbær', 'Kopavogur', 'Hafnarfjordur'] }, { country: '🇮🇹 Italy', cities: ['Rome', 'Milan', 'Naples', 'Turin', 'Florence'] }, { country: '🇱🇻 Latvia', cities: ['Riga', 'Jurmala', 'Liepaja', 'Jelgava'] }, { country: '🇱🇮 Liechtenstein', cities: ['Vaduz', 'Balzers', 'Eschen', 'Schaan'] }, { country: '🇱🇹 Lithuania', cities: ['Vilnius', 'Kaunas', 'Klaipeda', 'Šiauliai', 'Panevėžys'] }, { country: '🇱🇺 Luxembourg', cities: ['Luxembourg City', 'Ettelbruck', 'Differdange', 'Dudelange'] }, { country: '🇲🇹 Malta', cities: ['Valletta', 'Mosta', 'Mellieħa', 'Sliema', 'Birkirkara'] }, { country: '🇳🇱 Netherlands', cities: ['Amsterdam', 'Rotterdam', 'The Hague', 'Utrecht', 'Eindhoven'] }, { country: '🇳🇴 Norway', cities: ['Oslo', 'Bergen', 'Stavanger', 'Trondheim', 'Drammen'] }, { country: '🇵🇱 Poland', cities: ['Warsaw', 'Kraków', 'Gdańsk', 'Wrocław', 'Poznań'] }, { country: '🇵🇹 Portugal', cities: ['Lisbon', 'Porto', 'Braga', 'Coimbra', 'Aveiro'] }, { country: '🇷🇴 Romania', cities: ['Bucharest', 'Cluj-Napoca', 'Timișoara', 'Iași', 'Constanța'] }, { country: '🇸🇰 Slovakia', cities: ['Bratislava', 'Košice', 'Prešov', 'Nitra', 'Žilina'] }, { country: '🇸🇮 Slovenia', cities: ['Ljubljana', 'Maribor', 'Celje', 'Kranj', 'Koper'] }, { country: '🇪🇸 Spain', cities: ['Madrid', 'Barcelona', 'Valencia', 'Seville', 'Bilbao'] }, { country: '🇸🇪 Sweden', cities: ['Stockholm', 'Gothenburg', 'Malmö', 'Uppsala', 'Västerås'] }, { country: '🇨🇭 Switzerland', cities: ['Zurich', 'Geneva', 'Basel', 'Bern', 'Lausanne'] } ];
-    
+    const countries = ["Afghanistan", "Albania", "Algeria", "Andorra", "Angola", "Antigua and Barbuda", "Argentina", "Armenia", "Australia", "Austria", "Azerbaijan", "Bahamas", "Bahrain", "Bangladesh", "Barbados", "Belarus", "Belgium", "Belize", "Benin", "Bhutan", "Bolivia", "Bosnia and Herzegovina", "Botswana", "Brazil", "Brunei", "Bulgaria", "Burkina Faso", "Burundi", "Cabo Verde", "Cambodia", "Cameroon", "Canada", "Central African Republic", "Chad", "Chile", "China", "Colombia", "Comoros", "Congo, Democratic Republic of the", "Congo, Republic of the", "Costa Rica", "Cote d'Ivoire", "Croatia", "Cuba", "Cyprus", "Czech Republic", "Denmark", "Djibouti", "Dominica", "Dominican Republic", "Ecuador", "Egypt", "El Salvador", "Equatorial Guinea", "Eritrea", "Estonia", "Eswatini", "Ethiopia", "Fiji", "Finland", "France", "Gabon", "Gambia", "Georgia", "Germany", "Ghana", "Greece", "Grenada", "Guatemala", "Guinea", "Guinea-Bissau", "Guyana", "Haiti", "Honduras", "Hungary", "Iceland", "India", "Indonesia", "Iran", "Iraq", "Ireland", "Israel", "Italy", "Jamaica", "Japan", "Jordan", "Kazakhstan", "Kenya", "Kiribati", "Kosovo", "Kuwait", "Kyrgyzstan", "Laos", "Latvia", "Lebanon", "Lesotho", "Liberia", "Libya", "Liechtenstein", "Lithuania", "Luxembourg", "Madagascar", "Malawi", "Malaysia", "Maldives", "Mali", "Malta", "Marshall Islands", "Mauritania", "Mauritius", "Mexico", "Micronesia", "Moldova", "Monaco", "Mongolia", "Montenegro", "Morocco", "Mozambique", "Myanmar (Burma)", "Namibia", "Nauru", "Nepal", "Netherlands", "New Zealand", "Nicaragua", "Niger", "Nigeria", "North Korea", "North Macedonia", "Norway", "Oman", "Pakistan", "Palau", "Palestine", "Panama", "Papua New Guinea", "Paraguay", "Peru", "Philippines", "Poland", "Portugal", "Qatar", "Romania", "Russia", "Rwanda", "Saint Kitts and Nevis", "Saint Lucia", "Saint Vincent and the Grenadines", "Samoa", "San Marino", "Sao Tome and Principe", "Saudi Arabia", "Senegal", "Serbia", "Seychelles", "Sierra Leone", "Singapore", "Slovakia", "Slovenia", "Solomon Islands", "Somalia", "South Africa", "South Korea", "South Sudan", "Spain", "Sri Lanka", "Sudan", "Suriname", "Sweden", "Switzerland", "Syria", "Taiwan", "Tajikistan", "Tanzania", "Thailand", "Timor-Leste", "Togo", "Tonga", "Trinidad and Tobago", "Tunisia", "Turkey", "Turkmenistan", "Tuvalu", "Uganda", "Ukraine", "United Arab Emirates", "United Kingdom", "United States", "Uruguay", "Uzbekistan", "Vanuatu", "Vatican City", "Venezuela", "Vietnam", "Yemen", "Zambia", "Zimbabwe"];
+    const destinations = [{ country: '🇦🇹 Austria', cities: ['Vienna', 'Salzburg', 'Graz', 'Linz', 'Innsbruck'] }, { country: '🇧🇪 Belgium', cities: ['Brussels', 'Antwerp', 'Ghent', 'Bruges', 'Liège'] }, { country: '🇧🇬 Bulgaria', cities: ['Sofia', 'Plovdiv', 'Varna', 'Burgas', 'Ruse'] }, { country: '🇭🇷 Croatia', cities: ['Zagreb', 'Split', 'Dubrovnik', 'Rijeka', 'Osijek'] }, { country: '🇨🇿 Czech Republic', cities: ['Prague', 'Brno', 'Ostrava', 'Plzeň', 'Liberec'] }, { country: '🇩🇰 Denmark', cities: ['Copenhagen', 'Aarhus', 'Odense', 'Aalborg', 'Esbjerg'] }, { country: '🇪🇪 Estonia', cities: ['Tallinn', 'Tartu', 'Narva', 'Pärnu', 'Kohtla-Järve'] }, { country: '🇫🇮 Finland', cities: ['Helsinki', 'Espoo', 'Tampere', 'Vantaa', 'Oulu'] }, { country: '🇫🇷 France', cities: ['Paris', 'Marseille', 'Lyon', 'Toulouse', 'Nice'] }, { country: '🇩🇪 Germany', cities: ['Berlin', 'Munich', 'Hamburg', 'Cologne', 'Frankfurt'] }, { country: '🇬🇷 Greece', cities: ['Athens', 'Thessaloniki', 'Patras', 'Heraklion', 'Larissa'] }, { country: '🇭🇺 Hungary', cities: ['Budapest', 'Debrecen', 'Szeged', 'Miskolc', 'Pécs'] }, { country: '🇮🇸 Iceland', cities: ['Reykjavík', 'Akureyri', 'Reykjanesbær', 'Kopavogur', 'Hafnarfjordur'] }, { country: '🇮🇹 Italy', cities: ['Rome', 'Milan', 'Naples', 'Turin', 'Florence'] }, { country: '🇱🇻 Latvia', cities: ['Riga', 'Jurmala', 'Liepaja', 'Jelgava'] }, { country: '🇱🇮 Liechtenstein', cities: ['Vaduz', 'Balzers', 'Eschen', 'Schaan'] }, { country: '🇱🇹 Lithuania', cities: ['Vilnius', 'Kaunas', 'Klaipeda', 'Šiauliai', 'Panevėžys'] }, { country: '🇱🇺 Luxembourg', cities: ['Luxembourg City', 'Ettelbruck', 'Differdange', 'Dudelange'] }, { country: '🇲🇹 Malta', cities: ['Valletta', 'Mosta', 'Mellieħa', 'Sliema', 'Birkirkara'] }, { country: '🇳🇱 Netherlands', cities: ['Amsterdam', 'Rotterdam', 'The Hague', 'Utrecht', 'Eindhoven'] }, { country: '🇳🇴 Norway', cities: ['Oslo', 'Bergen', 'Stavanger', 'Trondheim', 'Drammen'] }, { country: '🇵🇱 Poland', cities: ['Warsaw', 'Kraków', 'Gdańsk', 'Wrocław', 'Poznań'] }, { country: '🇵🇹 Portugal', cities: ['Lisbon', 'Porto', 'Braga', 'Coimbra', 'Aveiro'] }, { country: '🇷🇴 Romania', cities: ['Bucharest', 'Cluj-Napoca', 'Timișoara', 'Iași', 'Constanța'] }, { country: '🇸🇰 Slovakia', cities: ['Bratislava', 'Košice', 'Prešov', 'Nitra', 'Žilina'] }, { country: '🇸🇮 Slovenia', cities: ['Ljubljana', 'Maribor', 'Celje', 'Kranj', 'Koper'] }, { country: '🇪🇸 Spain', cities: ['Madrid', 'Barcelona', 'Valencia', 'Seville', 'Bilbao'] }, { country: '🇸🇪 Sweden', cities: ['Stockholm', 'Gothenburg', 'Malmö', 'Uppsala', 'Västerås'] }, { country: '🇨🇭 Switzerland', cities: ['Zurich', 'Geneva', 'Basel', 'Bern', 'Lausanne'] }];
+
     let currentView = '#summary-view'; // Start at summary
-    
+
     const buildStructuredAddressFields = (prefix) => [
         { id: `${prefix}_address_1`, placeholder: 'Address Line 1 *', type: 'text' },
         { id: `${prefix}_address_2`, placeholder: 'Address Line 2', type: 'text' },
@@ -60,18 +55,18 @@ $(document).ready(function() {
     // We need this to correctly render the summary view
     const questions = [
         { id: 'marital_status', text: "What is your marital status?", type: 'radio', field: 'marital_status', options: ['Single', 'Married', 'Divorced', 'Widowed'], isMandatory: true, category: 'Personal Profile', note: 'This information helps complete your profile for the application.' },
-        { id: 'birth_place', text: "What is your place and country of birth?", type: 'group', isMandatory: true, table: 'personal', fields: [ { id: 'place_of_birth', placeholder: 'Place of Birth *', type: 'text' }, { id: 'country_of_birth', placeholder: 'Country of Birth *', type: 'select', options: countries } ], category: 'Personal Profile', note: 'This must match your passport details exactly.' },
+        { id: 'birth_place', text: "What is your place and country of birth?", type: 'group', isMandatory: true, table: 'personal', fields: [{ id: 'place_of_birth', placeholder: 'Place of Birth *', type: 'text' }, { id: 'country_of_birth', placeholder: 'Country of Birth *', type: 'select', options: countries }], category: 'Personal Profile', note: 'This must match your passport details exactly.' },
         { id: 'travel_sponsor', text: "Who will cover the costs of your trip?", type: 'sponsor-details', field: 'travel_covered_by', isMandatory: true, category: 'Financial & Sponsorship', note: 'Please select the primary source of funding for your trip.' },
         { id: 'occupation_status', text: "What is your current occupation?", type: 'radio', field: 'occupation_status', options: ['Employee', 'Self-Employed / Freelancer', 'Student', 'Retired', 'Unemployed / Homemaker / Volunteer / Intern'], isMandatory: true, category: 'Employment / Occupation', note: 'Your answer helps us understand your ties to your home country.' },
-        { id: 'employee_details', text: "Please provide your employment details.", type: 'group', isMandatory: true, condition: (data) => data.occupation_status === 'Employee', fields: [ { id: 'occupation_title', placeholder: 'Job Title *' }, { id: 'company_name', placeholder: 'Company Name *' }, ...buildStructuredAddressFields('company'), { id: 'company_phone', placeholder: 'Company Phone *' }, { id: 'company_email', placeholder: 'Company Email *' } ], category: 'Employment / Occupation', note: 'This information is used to verify your employment status.' },
-        { id: 'self_employed_details', text: "Please provide your business details.", type: 'group', isMandatory: true, condition: (data) => data.occupation_status === 'Self-Employed / Freelancer', fields: [ { id: 'company_name', placeholder: 'Business Name *' }, ...buildStructuredAddressFields('company'), { id: 'company_phone', placeholder: 'Business Phone / Email' } ], category: 'Employment / Occupation', note: 'Details about your business help establish your financial ties.' },
-        { id: 'student_details', text: "Please provide your school/university details.", type: 'group', isMandatory: true, condition: (data) => data.occupation_status === 'Student', fields: [ { id: 'company_name', placeholder: 'School / University Name *' }, ...buildStructuredAddressFields('company'), { id: 'company_phone', placeholder: 'School Contact Information' } ], category: 'Employment / Occupation', note: 'This helps confirm your status as a student.' },
+        { id: 'employee_details', text: "Please provide your employment details.", type: 'group', isMandatory: true, condition: (data) => data.occupation_status === 'Employee', fields: [{ id: 'occupation_title', placeholder: 'Job Title *' }, { id: 'company_name', placeholder: 'Company Name *' }, ...buildStructuredAddressFields('company'), { id: 'company_phone', placeholder: 'Company Phone *' }, { id: 'company_email', placeholder: 'Company Email *' }], category: 'Employment / Occupation', note: 'This information is used to verify your employment status.' },
+        { id: 'self_employed_details', text: "Please provide your business details.", type: 'group', isMandatory: true, condition: (data) => data.occupation_status === 'Self-Employed / Freelancer', fields: [{ id: 'company_name', placeholder: 'Business Name *' }, ...buildStructuredAddressFields('company'), { id: 'company_phone', placeholder: 'Business Phone / Email' }], category: 'Employment / Occupation', note: 'Details about your business help establish your financial ties.' },
+        { id: 'student_details', text: "Please provide your school/university details.", type: 'group', isMandatory: true, condition: (data) => data.occupation_status === 'Student', fields: [{ id: 'company_name', placeholder: 'School / University Name *' }, ...buildStructuredAddressFields('company'), { id: 'company_phone', placeholder: 'School Contact Information' }], category: 'Employment / Occupation', note: 'This helps confirm your status as a student.' },
         { id: 'retired_details', text: "Please confirm your retired status.", type: 'text', field: 'occupation_title', condition: (data) => data.occupation_status === 'Retired', placeholder: "e.g., Retired *", isMandatory: true, category: 'Employment / Occupation', note: "Confirming your status helps in understanding your financial support." },
         { id: 'unemployed_details', text: "Please confirm your current status.", type: 'text', field: 'occupation_title', condition: (data) => data.occupation_status === 'Unemployed / Homemaker / Volunteer / Intern', placeholder: "e.g., Homemaker *", isMandatory: true, category: 'Employment / Occupation', note: 'Please specify your current primary role.' },
         { id: 'credit_card', text: "Do you have a credit card?", type: 'radio', options: ['Yes', 'No'], field: 'has_credit_card', isMandatory: true, category: 'Financial & Sponsorship', note: 'You don’t need a credit card to get a Schengen visa. If you don’t have one, you can show bank statements, a sponsorship letter, or proof of prepaid travel and accommodation instead.' },
         { id: 'fingerprints', text: "Have you had your fingerprints collected for a previous Schengen visa?", type: 'radio', options: ['Yes', 'No'], field: 'fingerprints_taken', isMandatory: true, category: 'Travel History', note: 'If yes, your VIS data may be reused, simplifying the process.' },
         { id: 'fingerprints_upload', text: "Please upload a clear picture of that visa.", type: 'file', field: 'schengen_visa_image', inputName: 'visa_image[]', condition: (data) => data.fingerprints_taken === 'Yes', isMandatory: true, category: 'Client Documents', note: 'Upload one or more files (PNG, JPG, PDF).' },
-        { id: 'travel_dates', text: "What are your planned travel dates?", type: 'group', isMandatory: true, fields: [ { id: 'travel_date_from', label: 'Planned Departure:', type: 'date' }, { id: 'travel_date_to', label: 'Planned Return:', type: 'date' } ], category: 'Travel Plans', note: 'Tip: A travel date at least 30 days after your appointment and a short trip of 2-3 days can improve approval chances.' },
+        { id: 'travel_dates', text: "What are your planned travel dates?", type: 'group', isMandatory: true, fields: [{ id: 'travel_date_from', label: 'Planned Departure:', type: 'date' }, { id: 'travel_date_to', label: 'Planned Return:', type: 'date' }], category: 'Travel Plans', note: 'Tip: A travel date at least 30 days after your appointment and a short trip of 2-3 days can improve approval chances.' },
         { id: 'travel_dates_confirm', text: "Please confirm your travel dates.", type: 'confirm-dates', isMandatory: true, category: 'Travel Plans', note: 'Please double-check the dates you have entered.' },
         { id: 'destination', text: "What will be your primary destination city?", type: 'grouped-select', field: 'primary_destination', data: destinations, isMandatory: true, category: 'Travel Plans', note: 'Select the main city where you will spend the most time.' },
         { id: 'has_stay_booking', text: "Have you booked any stay based on the purpose of your visit?", type: 'radio', field: 'has_stay_booking', options: ['Yes', 'No'], isMandatory: true, category: 'Accommodation', note: 'This applies if you are traveling as a tourist.', condition: (qData, pData) => (pData.visa_type || '').toLowerCase().includes('tourist') },
@@ -106,7 +101,7 @@ $(document).ready(function() {
             ]
         }
     ];
-    
+
     // --- NEW: Core Application Logic ---
 
     if (!recordId || !recordType) {
@@ -122,30 +117,30 @@ $(document).ready(function() {
     ];
 
     // 1. --- NEW: Secure page with session check ---
-    $.get('api/auth.php?action=check_session', function(sessionRes) {
+    $.get('api/auth.php?action=check_session', function (sessionRes) {
         if (sessionRes.loggedin) {
             // 2. Fetch data from the admin endpoint
             const endpoint = recordType === 'traveler' ? 'api/travelers.php' : 'api/dependents.php';
             $.get(`${endpoint}?action=get_form_data&id=${recordId}`, res => {
                 if (res.status === 'success' && res.data) {
                     const flatData = res.data;
-                    
+
                     // 3. Normalize flat data into the { personal, questions } structure
                     personalFieldKeys.forEach(key => {
                         if (flatData[key] !== undefined) {
                             recordData.personal[key] = flatData[key];
                         }
                     });
-        
+
                     for (const [key, value] of Object.entries(flatData)) {
                         if (personalFieldKeys.indexOf(key) === -1) {
                             recordData.questions[key] = value;
                         }
                     }
-                    
+
                     // Set lock status from 'form_complete' field
                     isFormLocked = recordData.questions && (recordData.questions.form_complete === '1' || recordData.questions.form_complete === 1);
-        
+
                     // 4. Render the UI
                     $('#progress-bar-container').fadeIn();
                     updateHeader();
@@ -156,10 +151,10 @@ $(document).ready(function() {
                     setupLockUnlockButton();
                     setupClickToCopy();
                     checkClientDocumentStatus(); // Check for client-uploaded files
-                    
+
                     // Handle hash navigation (for direct links to sections)
                     handleHashNavigation();
-                    
+
                 } else {
                     $('.content-area').html(`<div class="error-message" style="display: block;">Error: ${res.message || 'Could not load record data.'}</div>`);
                 }
@@ -188,10 +183,10 @@ $(document).ready(function() {
         const visaType = p.visa_type || '[Visa Type]';
         const center = p.visa_center || '[Visa Center]';
         const pkg = p.package || '[Package]';
-        
+
         // Remove subtitle
         $('#header-subtitle').hide();
-        
+
         // NEW: Display appointment date (stored as doc_date in database)
         const appointmentDate = q.doc_date || p.doc_date;
         if (appointmentDate && appointmentDate !== '' && appointmentDate !== '0000-00-00') {
@@ -199,16 +194,16 @@ $(document).ready(function() {
             const dateObj = new Date(appointmentDate);
             const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
             const formattedDate = dateObj.toLocaleDateString('en-GB', options);
-            
+
             $('#appointment-date-text').text(formattedDate);
             $('#appointment-date-display').fadeIn();
         } else {
             $('#appointment-date-display').hide();
         }
-        
+
         // NEW: Display co-travellers information
         loadCoTravellers();
-        
+
         // Update the fixed client info header
         const fullName = (p.first_name || '') + ' ' + (p.last_name || '');
         $('#client-name').text(fullName.toUpperCase() || 'Client Name');
@@ -223,19 +218,19 @@ $(document).ready(function() {
         const p = recordData.personal || {};
         const travelerId = p.traveler_id; // For dependents, this will have the main traveler ID
         const currentId = recordId;
-        
+
         // Hide section initially
         $('#co-travellers-section').hide();
-        
+
         console.log('Loading co-travellers:', {
             recordType: recordType,
             currentId: currentId,
             travelerId: travelerId,
             personalData: p
         });
-        
+
         let mainTravelerId;
-        
+
         if (recordType === 'traveler') {
             // Current record is main traveler
             mainTravelerId = currentId;
@@ -246,15 +241,15 @@ $(document).ready(function() {
             console.log('Cannot determine main traveler ID');
             return;
         }
-        
+
         // Fetch all travellers (main + dependents) and display them together
         const allTravellers = [];
-        
+
         // First, fetch the main traveler
-        $.get(`api/travelers.php?action=get_form_data&id=${mainTravelerId}`, function(mainRes) {
+        $.get(`api/travelers.php?action=get_form_data&id=${mainTravelerId}`, function (mainRes) {
             console.log('Main traveler response:', mainRes);
             console.log('Main traveler ID from API:', mainRes.data?.id, 'Expected:', mainTravelerId);
-            
+
             if (mainRes.status === 'success' && mainRes.data) {
                 // Mark as main traveller
                 mainRes.data.is_main = true;
@@ -263,12 +258,12 @@ $(document).ready(function() {
                 console.log('Main traveler added to list with ID:', mainRes.data.id, 'Name:', mainRes.data.first_name);
                 allTravellers.push(mainRes.data);
             }
-            
+
             // Then fetch all dependents
-            $.get(`api/get_dependents.php?traveler_id=${mainTravelerId}`, function(depRes) {
+            $.get(`api/get_dependents.php?traveler_id=${mainTravelerId}`, function (depRes) {
                 console.log('Dependents response:', depRes);
                 console.log('Number of dependents:', depRes.dependents?.length || 0);
-                
+
                 if (depRes.status === 'success' && depRes.dependents && depRes.dependents.length > 0) {
                     depRes.dependents.forEach((dep, index) => {
                         dep.is_main = false;
@@ -277,57 +272,57 @@ $(document).ready(function() {
                         allTravellers.push(dep);
                     });
                 }
-                
+
                 // Display all travellers together
                 if (allTravellers.length > 0) {
                     console.log('=== FILTERING CO-TRAVELLERS ===');
-                    console.log('All travellers fetched:', allTravellers.map(t => ({id: t.id, name: t.first_name, is_main: t.is_main})));
+                    console.log('All travellers fetched:', allTravellers.map(t => ({ id: t.id, name: t.first_name, is_main: t.is_main })));
                     console.log('Current viewing - ID:', currentId, '(type:', typeof currentId, ') Type:', recordType);
-                    
+
                     // Display all travellers except the current one being viewed
                     const travellersToDisplay = allTravellers.filter(t => {
                         const tId = parseInt(t.id);
                         const currentIdInt = parseInt(currentId);
-                        
+
                         console.log(`  Checking: ${t.first_name || t.name} (ID: ${tId} / ${t.id}, is_main: ${t.is_main})`);
                         console.log(`    Comparing with current: ${currentIdInt} / ${currentId}, recordType: ${recordType}`);
                         console.log(`    Types - tId: ${typeof tId}, currentIdInt: ${typeof currentIdInt}`);
                         console.log(`    Raw comparison: ${t.id} === ${currentId} = ${t.id === currentId}`);
                         console.log(`    Int comparison: ${tId} === ${currentIdInt} = ${tId === currentIdInt}`);
                         console.log(`    String comparison: "${String(t.id)}" === "${String(currentId)}" = ${String(t.id) === String(currentId)}`);
-                        
+
                         // RULE 1: If viewing main traveller, NEVER show anyone with is_main=true
                         if (recordType === 'traveler' && t.is_main === true) {
                             console.log(`    ❌ EXCLUDED - Viewing main traveler, excluding main (is_main=true)`);
                             return false;
                         }
-                        
+
                         // RULE 2: If IDs match exactly, exclude
                         const idsMatch = (tId === currentIdInt) || (String(t.id) === String(currentId)) || (t.id == currentId);
                         console.log(`    IDs Match Check: ${idsMatch}`);
-                        
+
                         if (idsMatch) {
                             console.log(`    ❌ EXCLUDED - ID matches current user`);
                             return false;
                         }
-                        
+
                         console.log(`    ✅ INCLUDED - Will be displayed`);
                         return true;
                     });
-                    
-                    console.log('Final travellers to display:', travellersToDisplay.map(t => ({id: t.id, name: t.first_name})));
+
+                    console.log('Final travellers to display:', travellersToDisplay.map(t => ({ id: t.id, name: t.first_name })));
                     console.log('=== END FILTERING ===');
-                    
+
                     if (travellersToDisplay.length > 0) {
                         // Get names for header
                         const names = travellersToDisplay.map(t => t.first_name || t.name?.split(' ')[0] || '').filter(n => n).join(', ').toUpperCase();
-                        
+
                         if (names) {
                             $('#co-travellers-title').text('CO-TRAVELLERS (' + names + ')');
                         } else {
                             $('#co-travellers-title').text('CO-TRAVELLERS');
                         }
-                        
+
                         displayCoTravellers(travellersToDisplay);
                     } else {
                         console.log('⚠️ No other travellers to display after filtering');
@@ -336,12 +331,12 @@ $(document).ready(function() {
                 } else {
                     console.log('⚠️ No travellers found at all');
                 }
-                
-            }, 'json').fail(function(xhr, status, error) {
+
+            }, 'json').fail(function (xhr, status, error) {
                 console.error('Failed to fetch dependents:', error, xhr.responseText);
             });
-            
-        }, 'json').fail(function(xhr, status, error) {
+
+        }, 'json').fail(function (xhr, status, error) {
             console.error('Failed to fetch main traveler:', error, xhr.responseText);
         });
     }
@@ -349,32 +344,32 @@ $(document).ready(function() {
     function displayCoTravellers(travellers) {
         const $list = $('#co-travellers-list');
         $list.empty();
-        
+
         // Safety check - don't show section if no travellers
         if (!travellers || travellers.length === 0) {
             console.log('displayCoTravellers called with no travellers - hiding section');
             $('#co-travellers-section').hide();
             return;
         }
-        
+
         console.log('displayCoTravellers - Rendering', travellers.length, 'traveller(s)');
         console.log('Current user ID:', recordId, 'Type:', recordType);
-        
+
         let displayedCount = 0;
-        
+
         travellers.forEach(traveller => {
             const travellerId = traveller.id;
             const currentIdInt = parseInt(recordId);
             const travellerIdInt = parseInt(travellerId);
-            
+
             // CRITICAL CHECK: Never display the current user
             if (travellerIdInt === currentIdInt || String(travellerId) === String(recordId)) {
                 console.log(`🚫 SKIPPING: This is the current user (${traveller.first_name}, ID: ${travellerId})`);
                 return; // Skip this traveller
             }
-            
+
             console.log(`✅ RENDERING: ${traveller.first_name} (ID: ${travellerId})`);
-            
+
             const firstName = traveller.first_name || traveller.name?.split(' ')[0] || 'N/A';
             const lastName = traveller.last_name || traveller.name?.split(' ').slice(1).join(' ') || '';
             const fullName = `${firstName} ${lastName}`.trim();
@@ -385,7 +380,7 @@ $(document).ready(function() {
             const contact = traveller.contact_number || traveller.whatsapp_contact || 'N/A';
             const travellerType = traveller.traveller_type || 'traveler';
             const isMain = traveller.is_main ? ' (MAIN TRAVELLER)' : '';
-            
+
             const $card = $(`
                 <div class="co-traveller-card">
                     <div class="co-traveller-name">
@@ -420,29 +415,29 @@ $(document).ready(function() {
                     </button>
                 </div>
             `);
-            
+
             $list.append($card);
             displayedCount++;
         });
-        
+
         console.log(`Displayed ${displayedCount} traveller card(s)`);
-        
+
         // If no cards were actually displayed, hide the section
         if (displayedCount === 0) {
             console.log('⚠️ No traveller cards rendered - hiding section');
             $('#co-travellers-section').hide();
         } else {
             $('#co-travellers-section').fadeIn();
-            
+
             // Start collapsed by default
             $('#co-travellers-list').removeClass('expanded');
             $('#co-travellers-chevron').removeClass('rotated');
-            
+
             // Setup toggle functionality for co-travellers section
-            $('#co-travellers-toggle').off('click').on('click', function() {
+            $('#co-travellers-toggle').off('click').on('click', function () {
                 const $list = $('#co-travellers-list');
                 const $chevron = $('#co-travellers-chevron');
-                
+
                 // Toggle the expanded class
                 $list.toggleClass('expanded');
                 $chevron.toggleClass('rotated');
@@ -452,7 +447,7 @@ $(document).ready(function() {
 
     // --- NEW: Click-to-copy handler ---
     function setupClickToCopy() {
-        $(document).on('click', '.info-item:not(.read-only):not(.full-width) .display-value', function(e) {
+        $(document).on('click', '.info-item:not(.read-only):not(.full-width) .display-value', function (e) {
             // Don't copy if the section is in edit mode (REMOVED, NO EDIT MODE)
             // if ($(this).closest('.section').hasClass('editing')) return;
 
@@ -462,8 +457,8 @@ $(document).ready(function() {
                     const originalColor = $(this).css('color');
                     const originalBg = $(this).css('background-color');
                     // Show feedback
-                    $(this).css({'background-color': '#d1fae5', 'color': '#065f46', 'font-weight': '600'});
-                    setTimeout(() => $(this).css({'background-color': originalBg, 'color': originalColor, 'font-weight': '500'}), 500);
+                    $(this).css({ 'background-color': '#d1fae5', 'color': '#065f46', 'font-weight': '600' });
+                    setTimeout(() => $(this).css({ 'background-color': originalBg, 'color': originalColor, 'font-weight': '500' }), 500);
                 }).catch(err => {
                     console.error('Failed to copy text: ', err);
                 });
@@ -476,14 +471,14 @@ $(document).ready(function() {
         const btn = $('#lock-form-btn');
         updateLockUI(); // Set initial state
 
-        btn.on('click', function() {
+        btn.on('click', function () {
             const newLockState = isFormLocked ? 0 : 1; // 0 = unlock, 1 = lock
-            
+
             btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i>');
 
             // POST to the server to save the lock state
             const endpoint = recordType === 'traveler' ? 'api/travelers.php' : 'api/dependents.php';
-            $.post(`${endpoint}?action=set_lock_status`, { id: recordId, locked: newLockState }, function(res) {
+            $.post(`${endpoint}?action=set_lock_status`, { id: recordId, locked: newLockState }, function (res) {
                 if (res.status === 'success') {
                     isFormLocked = res.locked == 1; // Update state from server response
                     recordData.questions.form_complete = res.locked; // Update local data
@@ -517,21 +512,21 @@ $(document).ready(function() {
     // --- Summary View Logic (Copied from user_form.js) ---
     // (This section is largely unchanged from user_form.js, as it's
     // responsible for rendering the summary view we want)
-    
+
     function renderSummaryView() {
         if (isFormLocked) {
             $('.form-container').addClass('locked');
             $('#summary-final-message').html('<i class="fas fa-lock"></i> This form is locked.').show();
         } else {
-             $('#summary-final-message').hide();
+            $('#summary-final-message').hide();
         }
 
         // 1. Locked Information
         const lockedGrid = $('#summary-locked-grid');
         lockedGrid.empty();
-        const staticFields = [ { id: 'first_name', label: 'First Name' }, { id: 'last_name', label: 'Last Name' }, { id: 'dob', label: 'Date of Birth' }, { id: 'nationality', label: 'Nationality' }, { id: 'passport_no', label: 'Passport No.' }, { id: 'passport_issue', label: 'Passport Issue' }, { id: 'passport_expire', label: 'Passport Expire' }];
+        const staticFields = [{ id: 'first_name', label: 'First Name' }, { id: 'last_name', label: 'Last Name' }, { id: 'dob', label: 'Date of Birth' }, { id: 'nationality', label: 'Nationality' }, { id: 'passport_no', label: 'Passport No.' }, { id: 'passport_issue', label: 'Passport Issue' }, { id: 'passport_expire', label: 'Passport Expire' }];
         staticFields.forEach(f => lockedGrid.append(createSummaryInfoItem(f.id, f.label, recordData.personal[f.id], {}, {}, true)));
-        
+
         // 2. Personal Details
         const personalGrid = $('#summary-personal-grid');
         personalGrid.empty();
@@ -539,7 +534,7 @@ $(document).ready(function() {
             let label = id.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
             if (id === 'zip_code') label = 'Postal Code';
             const isMandatory = mandatoryPersonalFields.includes(id);
-            personalGrid.append(createSummaryInfoItem(id, label, recordData.personal[id], {table: 'personal'}, {type: 'text'}, false, isMandatory));
+            personalGrid.append(createSummaryInfoItem(id, label, recordData.personal[id], { table: 'personal' }, { type: 'text' }, false, isMandatory));
         });
 
         // 3. Questions Grid
@@ -547,9 +542,9 @@ $(document).ready(function() {
         const pData = recordData.personal || {};
         const questionsGrid = $('#summary-questions-grid');
         questionsGrid.empty();
-        
+
         const allRelevantFields = new Map();
-        
+
         questions.forEach(q => {
             if (q.id === 'accommodation_details') {
                 if (q.condition && q.condition(qData, pData)) {
@@ -566,7 +561,7 @@ $(document).ready(function() {
                     } else if (visaType.includes('family') || visaType.includes('friend')) {
                         accommodationFields = [
                             { id: 'inviting_person_first_name', label: 'Inviting Person First Name', type: 'text' }, { id: 'inviting_person_surname', label: 'Inviting Person Surname', type: 'text' },
-                            { id: 'inviting_person_email', label: 'Inviting Person Email', type: 'text' }, 
+                            { id: 'inviting_person_email', label: 'Inviting Person Email', type: 'text' },
                             { id: 'inviting_person_phone_code', label: 'Inviting Person Phone Code', type: 'text', col_class: 'half' }, { id: 'inviting_person_phone', label: 'Inviting Person Phone', type: 'text', col_class: 'half' },
                             { id: 'inviting_person_relationship', label: 'Relationship', type: 'text' },
                             { id: 'inviting_person_address_1', label: 'Address Line 1', type: 'text' }, { id: 'inviting_person_address_2', label: 'Address Line 2', type: 'text' },
@@ -584,49 +579,49 @@ $(document).ready(function() {
                         allRelevantFields.set(f.id, { label: f.label, value: qData[f.id], question: q, fieldDef: f, isMandatory: (f.label.includes('*')) });
                     });
                 }
-                return; 
+                return;
             }
-            
+
             if (q.id === 'travel_sponsor') {
-                 allRelevantFields.set(q.field, { label: q.text, value: qData[q.field], question: q, fieldDef: q, isMandatory: q.isMandatory });
-                 let sponsorFields = [];
-                 if (qData.travel_covered_by === 'Family Member / Family Member in the EU') {
+                allRelevantFields.set(q.field, { label: q.text, value: qData[q.field], question: q, fieldDef: q, isMandatory: q.isMandatory });
+                let sponsorFields = [];
+                if (qData.travel_covered_by === 'Family Member / Family Member in the EU') {
                     sponsorFields = [
-                        { id: 'sponsor_relation', label: 'Relation', type: 'select', options: ['Spouse / Civil Partner', 'Parent(s)', 'Sibling'] }, { id: 'sponsor_full_name', label: 'Full Name', type: 'text' }, 
-                        { id: 'sponsor_address_1', label: 'Address Line 1', type: 'text' }, { id: 'sponsor_address_2', label: 'Address Line 2', type: 'text' }, 
-                        { id: 'sponsor_city', label: 'City', type: 'text' }, { id: 'sponsor_state', label: 'State', type: 'text' }, { id: 'sponsor_zip', label: 'Postal Code', type: 'text' }, 
+                        { id: 'sponsor_relation', label: 'Relation', type: 'select', options: ['Spouse / Civil Partner', 'Parent(s)', 'Sibling'] }, { id: 'sponsor_full_name', label: 'Full Name', type: 'text' },
+                        { id: 'sponsor_address_1', label: 'Address Line 1', type: 'text' }, { id: 'sponsor_address_2', label: 'Address Line 2', type: 'text' },
+                        { id: 'sponsor_city', label: 'City', type: 'text' }, { id: 'sponsor_state', label: 'State', type: 'text' }, { id: 'sponsor_zip', label: 'Postal Code', type: 'text' },
                         { id: 'sponsor_email', label: 'Email', type: 'text' }, { id: 'sponsor_phone', label: 'Phone', type: 'text' }
                     ];
-                 } else if (qData.travel_covered_by === 'Host / Company / Organisation') {
-                     sponsorFields = [
+                } else if (qData.travel_covered_by === 'Host / Company / Organisation') {
+                    sponsorFields = [
                         { id: 'host_name', label: 'Host Name', type: 'text' }, { id: 'host_phone', label: 'Host Phone', type: 'text' }, { id: 'host_company_name', label: 'Company Name', type: 'text' },
-                        { id: 'host_address_1', label: 'Address Line 1', type: 'text' }, { id: 'host_address_2', label: 'Address Line 2', type: 'text' }, 
-                        { id: 'host_city', label: 'City', type: 'text' }, { id: 'host_state', label: 'State', type: 'text' }, { id: 'host_zip', label: 'Postal Code', type: 'text' }, 
+                        { id: 'host_address_1', label: 'Address Line 1', type: 'text' }, { id: 'host_address_2', label: 'Address Line 2', type: 'text' },
+                        { id: 'host_city', label: 'City', type: 'text' }, { id: 'host_state', label: 'State', type: 'text' }, { id: 'host_zip', label: 'Postal Code', type: 'text' },
                         { id: 'host_email', label: 'Email', type: 'text' }, { id: 'host_company_phone', label: 'Company Phone', type: 'text' }
                     ];
-                 }
-                 sponsorFields.forEach(f => {
+                }
+                sponsorFields.forEach(f => {
                     allRelevantFields.set(f.id, { label: f.label, value: qData[f.id], question: q, fieldDef: f, isMandatory: (f.label.includes('*')) });
-                 });
-                 return;
+                });
+                return;
             }
 
             if (!q.condition || q.condition(qData, pData)) {
                 if (q.fields) {
                     q.fields.forEach(f => {
-                         const value = (q.table === 'personal' ? pData : qData)[f.id];
-                         let label = f.placeholder ? f.placeholder.replace(' *', '') : (f.label || f.id);
-                         if (f.id.endsWith('_zip')) label = 'Postal Code';
-                         allRelevantFields.set(f.id, { label, value, question: q, fieldDef: f, isMandatory: (f.placeholder || f.label ||'').includes('*') });
+                        const value = (q.table === 'personal' ? pData : qData)[f.id];
+                        let label = f.placeholder ? f.placeholder.replace(' *', '') : (f.label || f.id);
+                        if (f.id.endsWith('_zip')) label = 'Postal Code';
+                        allRelevantFields.set(f.id, { label, value, question: q, fieldDef: f, isMandatory: (f.placeholder || f.label || '').includes('*') });
                     });
                 } else if (q.field) {
                     allRelevantFields.set(q.field, { label: q.text, value: qData[q.field], question: q, fieldDef: q, isMandatory: q.isMandatory });
                 }
             }
         });
-        
+
         const categoryOrder = ['Personal Profile', 'Financial & Sponsorship', 'Employment / Occupation', 'Travel Plans', 'Accommodation', 'Immigration Status', 'Travel History', 'Bookings', 'Client Documents'];
-        
+
         const categoryIcons = {
             'Personal Profile': 'fa-user',
             'Financial & Sponsorship': 'fa-credit-card',
@@ -638,7 +633,7 @@ $(document).ready(function() {
             'Bookings': 'fa-ticket-alt',
             'Client Documents': 'fa-file-user'
         };
-        
+
         categoryOrder.forEach(category => {
             let fieldsInCategory = '';
             allRelevantFields.forEach((field, id) => {
@@ -646,7 +641,7 @@ $(document).ready(function() {
                     fieldsInCategory += createSummaryInfoItem(id, field.label, field.value, field.question, field.fieldDef, false, field.isMandatory);
                 }
             });
-            
+
             if (fieldsInCategory) {
                 const iconClass = categoryIcons[category] || 'fa-info-circle';
                 let categoryHtml = `
@@ -667,11 +662,11 @@ $(document).ready(function() {
         });
 
         // Post-render setup for select2 (REMOVED, no edit)
-        
+
         // Remove submission buttons, this is a viewer
         $('#summary-actions-container').empty();
     }
-    
+
     function createSummaryInfoItem(id, label, value, questionDef, fieldDef, isReadOnly = false, isMandatory = false) {
         let displayValue = '';
         let itemClass = 'info-item';
@@ -682,7 +677,7 @@ $(document).ready(function() {
             itemClass += ' full-width';
             let files = value;
             if (typeof files === 'string') {
-                try { files = JSON.parse(files); } catch(e) { files = []; }
+                try { files = JSON.parse(files); } catch (e) { files = []; }
             }
             files = Array.isArray(files) ? files : [];
             displayValue = `<ul class="file-list">${createFileLis(files, id) || '<i>No files uploaded.</i>'}</ul>`;
@@ -693,7 +688,7 @@ $(document).ready(function() {
         } else {
             displayValue = value || '';
         }
-        
+
         if (id === 'evisa_no_date_settled') {
             const issueDate = recordData.questions['evisa_issue_date'];
             const expiryDate = recordData.questions['evisa_expiry_date'];
@@ -701,7 +696,7 @@ $(document).ready(function() {
                 itemClass += ' hidden-field';
             }
         }
-        
+
         return `
         <div class="${itemClass}" data-field="${id}" data-question-id="${questionDef.id || ''}" data-table="${questionDef.table || 'questions'}">
             <label>${label} ${isMandatory ? '<span class="mandatory-marker">*</span>' : ''}</label>
@@ -709,22 +704,22 @@ $(document).ready(function() {
             <!-- REMOVED Edit Input Wrapper -->
         </div>`;
     }
-    
+
     // REMOVED createEditInput function
-    
+
     function setupGenerateApplicationFormButton() {
         $(document)
             .off('click.generateApplicationForm', '#generate-application-form-btn')
-            .on('click.generateApplicationForm', '#generate-application-form-btn', function() {
+            .on('click.generateApplicationForm', '#generate-application-form-btn', function () {
                 if ($('.info-item').length === 0) {
                     alert('Client data is still loading. Please try again in a moment.');
                     return;
                 }
-                
+
                 const applicationFormObject = collectUserInformationFromFields();
                 recordData.applicationFormData = applicationFormObject;
                 window.generatedApplicationFormData = applicationFormObject;
-                
+
                 // Expanded debug logging for troubleshooting
                 try {
                     console.group('Application Form Debug');
@@ -738,7 +733,7 @@ $(document).ready(function() {
                 } catch (e) {
                     console.log('Application form data object generated:', applicationFormObject);
                 }
-                
+
                 // Optional POST to external endpoint (set window.APPLICATION_FORM_POST_URL to your IP/URL)
                 const postUrl =
                     (typeof window !== 'undefined' && (window.APPLICATION_FORM_POST_URL || window.APPLICATION_FORM_POST_IP)) || null;
@@ -759,11 +754,11 @@ $(document).ready(function() {
                 } else {
                     console.warn('APPLICATION_FORM_POST_URL not set. Define window.APPLICATION_FORM_POST_URL to enable POST.');
                 }
-                
+
                 showGenerateButtonFeedback($(this));
             });
     }
-    
+
     function postApplicationForm(url, data) {
         return fetch(url, {
             method: 'POST',
@@ -786,21 +781,21 @@ $(document).ready(function() {
             return parsed ?? text ?? { ok: true };
         });
     }
-    
+
     // Delegated handler for "Generate Application Form" button inside Documents section
     // Note: CSS id contains '+', which must be escaped in selector
     $(document)
         .off('click.generateApplicationFormDocSection', '#passport\\+date')
-        .on('click.generateApplicationFormDocSection', '#passport\\+date', function(e) {
+        .on('click.generateApplicationFormDocSection', '#passport\\+date', function (e) {
             e.preventDefault();
-            
+
             // Collect data similarly to the main generator
             const applicationFormObject = collectUserInformationFromFields();
-            
+
             const url =
                 (typeof window !== 'undefined' && (window.APPLICATION_FORM_POST_URL || window.APPLICATION_FORM_POST_IP))
                 || '/api/application-form/generate';
-            
+
             const payload = {
                 recordId: typeof recordId !== 'undefined' ? recordId : null,
                 recordType: typeof recordType !== 'undefined' ? recordType : null,
@@ -808,7 +803,7 @@ $(document).ready(function() {
                 source: 'documents_section_button',
                 timestamp: new Date().toISOString()
             };
-            
+
             postApplicationForm(url, payload)
                 .then(() => {
                     console.log('Generate Application Form: POST successful');
@@ -817,41 +812,41 @@ $(document).ready(function() {
                     console.error('Generate Application Form: POST failed', err);
                 });
         });
-    
+
     function collectUserInformationFromFields() {
         const userInfo = {};
-        
-        $('.info-item').each(function() {
+
+        $('.info-item').each(function () {
             const $item = $(this);
             const labelText = extractLabelText($item);
             const key = $item.data('field') || generateKeyFromLabel(labelText);
             const value = extractDisplayValue($item.find('.display-value'));
-            
+
             if (key) {
                 userInfo[key] = value;
             } else if (labelText) {
                 userInfo[labelText] = value;
             }
         });
-        
+
         return userInfo;
     }
-    
+
     function extractLabelText($infoItem) {
         const $label = $infoItem.find('label').clone();
         $label.find('.mandatory-marker').remove();
         return $label.text().trim();
     }
-    
+
     function extractDisplayValue($displayElement) {
         if (!$displayElement || !$displayElement.length) {
             return '';
         }
-        
+
         const $fileList = $displayElement.find('ul.file-list');
         if ($fileList.length) {
             const files = [];
-            $fileList.find('a').each(function() {
+            $fileList.find('a').each(function () {
                 files.push({
                     name: $(this).text().trim(),
                     url: $(this).attr('href')
@@ -859,15 +854,15 @@ $(document).ready(function() {
             });
             return files;
         }
-        
+
         const textValue = $displayElement.text().replace(/\s+/g, ' ').trim();
         if (!textValue || textValue.toLowerCase() === 'not set') {
             return '';
         }
-        
+
         return textValue;
     }
-    
+
     function generateKeyFromLabel(labelText) {
         if (!labelText) return '';
         return labelText
@@ -875,22 +870,22 @@ $(document).ready(function() {
             .replace(/[^a-z0-9]+/g, '_')
             .replace(/^_+|_+$/g, '');
     }
-    
+
     function showGenerateButtonFeedback($button) {
         if (!$button || !$button.length) return;
-        
+
         const originalHtml = $button.data('original-html') || $button.html();
         $button.data('original-html', originalHtml);
-        
+
         $button
             .prop('disabled', true)
             .html('<i class="fas fa-check-circle"></i> Data Collected');
-        
+
         setTimeout(() => {
             $button.prop('disabled', false).html(originalHtml);
         }, 2000);
     }
-    
+
     function createFileLis(files, db_field) {
         if (!Array.isArray(files) || files.length === 0) return '';
         return files.map(f => {
@@ -912,9 +907,9 @@ $(document).ready(function() {
         // but we keep it in case it's called by renderSummaryView
         // (which it shouldn't be, but safe to keep)
     };
-    
+
     // --- REMOVED Summary Page Edit Logic ---
-    
+
     // Note: Delete file logic is not included as it requires a specific API
     // and token which are not part of the admin API.
 
@@ -925,22 +920,22 @@ $(document).ready(function() {
         $('#progress-bar').css('width', percentage + '%');
         $('#progress-text').text(`${percentage}%`);
         if (isFormLocked) {
-             $('#progress-bar').css('width', '100%');
-             $('#progress-text').text(`100% (Completed)`);
+            $('#progress-bar').css('width', '100%');
+            $('#progress-text').text(`100% (Completed)`);
         }
-        
+
         // NEW: Add badge to Locker Data button when progress is 100%
         if (percentage >= 100 || isFormLocked) {
             $(`.nav-item[data-action="locker-data"]`).addClass('has-files');
         } else {
             $(`.nav-item[data-action="locker-data"]`).removeClass('has-files');
         }
-        
+
         return percentage;
     }
-    
-    const formatDateForDisplay = d => { 
-        if (!d) return '<i>Not set</i>'; 
+
+    const formatDateForDisplay = d => {
+        if (!d) return '<i>Not set</i>';
         let parts = d.split('-');
         if (parts.length === 3 && parts[0].length === 4) {
             if (d === '0000-00-00') return '<i>Not set</i>';
@@ -957,36 +952,36 @@ $(document).ready(function() {
     function setupCoveringLetterButton() {
         // Set active state for Locker Data button
         $('.nav-item[data-action="locker-data"]').addClass('active');
-        
+
         // Setup handler for all action buttons
-        $('.nav-item').each(function() {
-            $(this).on('click', function() {
+        $('.nav-item').each(function () {
+            $(this).on('click', function () {
                 const action = $(this).data('action');
-                
+
                 if (action === 'locker-data') {
                     // Already on this page - just scroll to top
                     window.scrollTo({ top: 0, behavior: 'smooth' });
                     return;
                 }
-                
+
                 const visaCountry = recordData.personal.travel_country || '';
                 const visaType = recordData.personal.visa_type || '';
-                
+
                 // Check for covering letter
                 if (action === 'covering-letter') {
                     const typeLower = visaType.toLowerCase();
-                    
+
                     // Check if Tourist visa
                     if (!typeLower.includes('tourist')) {
                         alert('Covering letter is currently only available for Tourist visa applications.');
                         return;
                     }
-                    
+
                     // Use universal Schengen template for ALL countries
                     // This template includes detailed content for Germany, France, Italy
                     // AND works for all other Schengen countries
                     const coveringLetterUrl = `covering_letter_schengen.html?id=${recordId}&type=${recordType}`;
-                    
+
                     // Navigate to covering letter
                     window.location.href = coveringLetterUrl;
                 } else if (action === 'client-documents') {
@@ -1015,8 +1010,8 @@ $(document).ready(function() {
 
     function getActionUrl(action) {
         const params = `?id=${recordId}&type=${recordType}`;
-        
-        switch(action) {
+
+        switch (action) {
             case 'insurance':
             case 'flight':
             case 'application-form':
@@ -1045,17 +1040,17 @@ $(document).ready(function() {
             'appointment': 'appointment',
             'hotel': 'hotel'
         };
-        
+
         let completedCount = 0;
         const totalCategories = categories.length;
-        
+
         categories.forEach(category => {
-            $.get(`api/documents.php?action=get_documents&id=${recordId}&type=${recordType}&category=${category}`, function(res) {
+            $.get(`api/documents.php?action=get_documents&id=${recordId}&type=${recordType}&category=${category}`, function (res) {
                 if (res.status === 'success' && res.documents && res.documents.length > 0) {
                     const action = categoryToAction[category];
                     $(`.nav-item[data-action="${action}"]`).addClass('has-files');
                     completedCount++;
-                    
+
                     // Check if all admin categories are complete
                     if (completedCount === totalCategories) {
                         $(`.nav-item[data-action="checklist"]`).addClass('has-files');
@@ -1074,7 +1069,7 @@ $(document).ready(function() {
         for (const field of clientDocFields) {
             let files = qData[field];
             if (typeof files === 'string') {
-                try { files = JSON.parse(files); } catch(e) { files = []; }
+                try { files = JSON.parse(files); } catch (e) { files = []; }
             }
             if (Array.isArray(files) && files.length > 0) {
                 hasClientDocs = true;
@@ -1088,13 +1083,13 @@ $(document).ready(function() {
     }
 
     // Mobile menu toggle functionality
-    $('#mobile-menu-toggle').on('click', function() {
+    $('#mobile-menu-toggle').on('click', function () {
         $(this).toggleClass('active');
         $('#action-buttons').toggleClass('expanded');
     });
 
     // Close mobile menu when clicking outside
-    $(document).on('click', function(event) {
+    $(document).on('click', function (event) {
         if (!$(event.target).closest('.client-info-header').length) {
             $('#mobile-menu-toggle').removeClass('active');
             $('#action-buttons').removeClass('expanded');
@@ -1105,20 +1100,20 @@ $(document).ready(function() {
     // ============================================
     // HORIZONTAL NAVIGATION FUNCTIONALITY
     // ============================================
-    
+
     // Navigation item click handler (consolidated)
-    $('.nav-item').on('click', function() {
+    $('.nav-item').on('click', function () {
         // Close mobile menu if open
         $('#mobile-menu-toggle').removeClass('active');
         $('#action-buttons').removeClass('expanded');
-        
+
         const action = $(this).data('action');
-        
+
         // Remove active class from all nav items
         $('.nav-item').removeClass('active');
         // Add active class to clicked item
         $(this).addClass('active');
-        
+
         // Handle navigation actions
         if (action === 'locker-data') {
             showSummaryView();
@@ -1129,9 +1124,9 @@ $(document).ready(function() {
         } else if (action === 'covering-letter') {
             // Navigate to covering letter page
             window.location.href = `covering_letter_schengen.html?id=${recordId}&type=${recordType}`;
-        } else if (action === 'insurance' || action === 'flight' || 
-                   action === 'application-form' || action === 'appointment' || 
-                   action === 'hotel') {
+        } else if (action === 'insurance' || action === 'flight' ||
+            action === 'application-form' || action === 'appointment' ||
+            action === 'hotel') {
             // Future functionality - for now just log the action
             console.log('Navigation action:', action);
             // You can add future views here as needed
@@ -1141,7 +1136,7 @@ $(document).ready(function() {
     // Handle hash-based navigation (for direct links)
     function handleHashNavigation() {
         const hash = window.location.hash.substring(1); // Remove the # symbol
-        
+
         if (hash === 'client-documents') {
             // Small delay to ensure DOM is ready
             setTimeout(() => {
@@ -1156,7 +1151,7 @@ $(document).ready(function() {
     }
 
     // Also handle hash changes while on the page
-    $(window).on('hashchange', function() {
+    $(window).on('hashchange', function () {
         handleHashNavigation();
     });
 
@@ -1167,15 +1162,15 @@ $(document).ready(function() {
         $('.view').removeClass('active').hide();
         // Show checklist view
         $('#checklist-view').addClass('active').show();
-        
+
         // Update header
         $('#header-title').text('Application Checklist');
         $('#header-subtitle').text('Track your document submission status').show();
-        
+
         // Set Checklist as active
         $('.nav-item').removeClass('active');
         $('.nav-item[data-action="checklist"]').addClass('active');
-        
+
         // Load checklist data
         loadChecklistData();
     }
@@ -1186,13 +1181,13 @@ $(document).ready(function() {
         $('.view').removeClass('active').hide();
         // Show summary view
         $('#summary-view').addClass('active').show();
-        
+
         $('#header-title').text('Client Form Data');
         $('#header-subtitle').text('Review of all submitted information.').show();
-        
+
         // Show all sections
         $('.section').show();
-        
+
         // Set Locker Data as active
         $('.nav-item').removeClass('active');
         $('.nav-item[data-action="locker-data"]').addClass('active');
@@ -1202,24 +1197,24 @@ $(document).ready(function() {
     function showClientDocumentsView() {
         // Hide all views
         $('.view').removeClass('active').hide();
-        
+
         // Check if client-documents-view exists, if not create it
         if ($('#client-documents-view').length === 0) {
             // Create the client documents view div
             $('#checklist-view').after('<div id="client-documents-view" class="view"></div>');
         }
-        
+
         // Show client documents view
         $('#client-documents-view').addClass('active').show();
-        
+
         // Update header
         $('#header-title').text('Client Documents');
         $('#header-subtitle').text('Review uploaded documents organized by category').show();
-        
+
         // Set Client Documents as active
         $('.nav-item').removeClass('active');
         $('.nav-item[data-action="client-documents"]').addClass('active');
-        
+
         // Load and display categorized documents
         loadClientDocuments();
     }
@@ -1233,7 +1228,7 @@ $(document).ready(function() {
                 <p style="margin-top: 20px; color: #64748b;">Loading documents...</p>
             </div>
         `);
-        
+
         // Define document categories with their API category names and upload permissions
         const documentCategories = [
             { title: 'E-Visa Documents', apiCategory: 'evisa', icon: 'fa-id-card', description: 'UK E-Visa screenshots or PDF documents', allowUpload: true },
@@ -1246,20 +1241,20 @@ $(document).ready(function() {
             { title: 'Hotel Bookings', apiCategory: 'hotel', icon: 'fa-hotel', description: 'Hotel reservation confirmations', allowUpload: true },
             { title: 'Appointment Confirmations', apiCategory: 'appointment', icon: 'fa-calendar-check', description: 'VFS/Consulate appointment confirmations', allowUpload: true }
         ];
-        
+
         // Fetch all documents
         Promise.all(documentCategories.map(cat => fetchDocumentsByCategory(cat.apiCategory)))
             .then(results => {
                 let html = '';
                 let totalDocuments = 0;
-                
+
                 // Count total documents
                 results.forEach(documents => {
                     if (documents && documents.length > 0) {
                         totalDocuments += documents.length;
                     }
                 });
-                
+
                 // Add summary at the top
                 html = `
                     <div class="section" style="margin-bottom: 20px;">
@@ -1275,12 +1270,12 @@ $(document).ready(function() {
                         </div>
                     </div>
                 `;
-                
+
                 // Build HTML for each category (show ALL categories)
                 documentCategories.forEach((category, index) => {
                     const documents = results[index] || [];
                     const hasDocuments = documents.length > 0;
-                    
+
                     html += `
                         <div class="section" style="margin-bottom: 25px;">
                             <div class="section-header">
@@ -1326,10 +1321,10 @@ $(document).ready(function() {
                                     </div>
                                 </div>
                     `;
-                    
+
                     if (hasDocuments) {
                         html += `<div class="document-grid">`;
-                        
+
                         // Add each document
                         documents.forEach(doc => {
                             const fileName = doc.name || 'Document';
@@ -1339,7 +1334,7 @@ $(document).ready(function() {
                             const fileExt = fileName.split('.').pop().toUpperCase();
                             const isClientUpload = doc.source === 'client_form';
                             const fileId = doc.id || null;
-                            
+
                             html += `
                                 <div class="document-card" data-file-id="${fileId}" data-category="${category.apiCategory}" data-file-name="${fileName}">
                                     <div style="display: flex; align-items: flex-start; gap: 12px;">
@@ -1376,7 +1371,7 @@ $(document).ready(function() {
                                 </div>
                             `;
                         });
-                        
+
                         html += `</div>`;
                     } else {
                         html += `
@@ -1387,22 +1382,22 @@ $(document).ready(function() {
                             </div>
                         `;
                     }
-                    
+
                     html += `
                             </div>
                         </div>
                     `;
                 });
-                
+
                 // Display the content
                 $('#client-documents-view').html(html);
-                
+
                 // Attach upload button handlers
                 setupUploadHandlers();
-                
+
                 // Attach delete button handlers
                 setupDeleteHandlers();
-                
+
                 // Scroll to top
                 $('html, body').animate({ scrollTop: 0 }, 300);
             })
@@ -1424,47 +1419,47 @@ $(document).ready(function() {
     function fetchDocumentsByCategory(category) {
         return new Promise((resolve) => {
             // First, get documents from the documents API
-            $.get(`api/documents.php?action=get_documents&id=${recordId}&type=${recordType}&category=${category}`, 
-            function(res) {
-                let files = [];
-                
-                // Add files from documents API
-                if (res.status === 'success' && res.documents && res.documents.length > 0) {
-                    files = res.documents.map(doc => {
-                        let fileUrl = doc.url || doc.file_path;
-                        if (!fileUrl.startsWith('http://') && !fileUrl.startsWith('https://') && !fileUrl.startsWith('/')) {
-                            fileUrl = '/' + fileUrl;
-                        }
-                        return {
-                            name: doc.original_filename || doc.name || doc.filename || 'Document',
-                            url: fileUrl,
-                            upload_date: doc.upload_date || doc.created_at,
-                            file_size: doc.file_size || doc.size
-                        };
-                    });
-                }
-                
-                // Additionally, check recordData.questions for client-uploaded files
-                const qData = recordData.questions || {};
-                const clientFiles = getClientUploadedFilesByCategory(category, qData);
-                
-                // Merge both sources
-                files = files.concat(clientFiles);
-                
-                resolve(files);
-            }, 'json').fail(() => {
-                // Even if API fails, try to get client-uploaded files from form data
-                const qData = recordData.questions || {};
-                const clientFiles = getClientUploadedFilesByCategory(category, qData);
-                resolve(clientFiles);
-            });
+            $.get(`api/documents.php?action=get_documents&id=${recordId}&type=${recordType}&category=${category}`,
+                function (res) {
+                    let files = [];
+
+                    // Add files from documents API
+                    if (res.status === 'success' && res.documents && res.documents.length > 0) {
+                        files = res.documents.map(doc => {
+                            let fileUrl = doc.url || doc.file_path;
+                            if (!fileUrl.startsWith('http://') && !fileUrl.startsWith('https://') && !fileUrl.startsWith('/')) {
+                                fileUrl = '/' + fileUrl;
+                            }
+                            return {
+                                name: doc.original_filename || doc.name || doc.filename || 'Document',
+                                url: fileUrl,
+                                upload_date: doc.upload_date || doc.created_at,
+                                file_size: doc.file_size || doc.size
+                            };
+                        });
+                    }
+
+                    // Additionally, check recordData.questions for client-uploaded files
+                    const qData = recordData.questions || {};
+                    const clientFiles = getClientUploadedFilesByCategory(category, qData);
+
+                    // Merge both sources
+                    files = files.concat(clientFiles);
+
+                    resolve(files);
+                }, 'json').fail(() => {
+                    // Even if API fails, try to get client-uploaded files from form data
+                    const qData = recordData.questions || {};
+                    const clientFiles = getClientUploadedFilesByCategory(category, qData);
+                    resolve(clientFiles);
+                });
         });
     }
-    
+
     // Helper function to extract client-uploaded files from form data by category
     function getClientUploadedFilesByCategory(category, qData) {
         const files = [];
-        
+
         // Map category to field names in recordData.questions
         const categoryFieldMap = {
             'schengen_visa': ['schengen_visa_image'],
@@ -1472,18 +1467,18 @@ $(document).ready(function() {
             'evisa': ['evisa_document_path'],
             'share_code': ['share_code_document_path']
         };
-        
+
         const fieldNames = categoryFieldMap[category] || [];
-        
+
         fieldNames.forEach(fieldName => {
             const fieldValue = qData[fieldName];
-            
+
             console.log(`[File Path Debug] Category: ${category}, Field: ${fieldName}, Raw Value:`, fieldValue);
-            
+
             if (fieldValue && fieldValue !== '') {
                 // Parse the field value - it could be a single file or multiple files
                 let filePaths = [];
-                
+
                 // Check if it's a JSON array string
                 try {
                     if (fieldValue.startsWith('[')) {
@@ -1495,18 +1490,18 @@ $(document).ready(function() {
                     // If not JSON, treat as single file path
                     filePaths = [fieldValue];
                 }
-                
+
                 console.log(`[File Path Debug] Parsed paths:`, filePaths);
-                
+
                 // Add each file
                 filePaths.forEach(filePath => {
                     if (filePath && filePath.trim() !== '') {
                         // Extract filename from path
                         const fileName = filePath.split('/').pop();
-                        
+
                         // Construct proper file URL
                         let fileUrl = filePath;
-                        
+
                         // If it's already a full URL, use it as is
                         if (fileUrl.startsWith('http://') || fileUrl.startsWith('https://')) {
                             // Full URL, use as is
@@ -1514,14 +1509,14 @@ $(document).ready(function() {
                         } else {
                             // Remove leading slash if present
                             fileUrl = fileUrl.replace(/^\//, '');
-                            
+
                             // Use the same base path as the checklist code
                             // Client-uploaded files are stored in uploads/documents/client_documents/
                             fileUrl = `uploads/documents/client_documents/${fileUrl}`;
-                            
+
                             console.log(`[File Path Debug] Constructed path: "${filePath}" -> "${fileUrl}"`);
                         }
-                        
+
                         files.push({
                             name: fileName,
                             url: fileUrl,
@@ -1533,9 +1528,9 @@ $(document).ready(function() {
                 });
             }
         });
-        
+
         console.log(`[File Path Debug] Total files found for category ${category}:`, files.length, files);
-        
+
         return files;
     }
 
@@ -1551,20 +1546,20 @@ $(document).ready(function() {
     // Setup upload handlers for document categories
     function setupUploadHandlers() {
         // Quick upload button (direct file selection)
-        $('.quick-upload-btn').off('click').on('click', function() {
+        $('.quick-upload-btn').off('click').on('click', function () {
             const category = $(this).data('category');
             $(`#quick-upload-${category}`).click();
         });
-        
+
         // Handle quick upload file selection
-        $('.quick-upload-input').off('change').on('change', function() {
+        $('.quick-upload-input').off('change').on('change', function () {
             const category = $(this).data('category');
             const files = Array.from(this.files);
-            
+
             if (files.length > 0) {
                 handleQuickUpload(category, files);
             }
-            
+
             // Reset input so same file can be selected again
             $(this).val('');
         });
@@ -1575,16 +1570,16 @@ $(document).ready(function() {
         const $progressContainer = $(`#quick-upload-progress-${category}`);
         const $progressBar = $progressContainer.find('.upload-progress-bar');
         const $statusText = $progressContainer.find('.upload-status-text');
-        
+
         // Show progress
         $progressContainer.fadeIn();
         $statusText.html('<i class="fas fa-spinner fa-spin"></i> Uploading files...');
         $progressBar.css('width', '0%');
-        
+
         let uploadedCount = 0;
         let failedCount = 0;
         const totalFiles = files.length;
-        
+
         function uploadNextFile(index) {
             if (index >= totalFiles) {
                 // All uploads complete
@@ -1594,7 +1589,7 @@ $(document).ready(function() {
                 } else {
                     $statusText.html(`<i class="fas fa-exclamation-circle" style="color: #f59e0b;"></i> ${uploadedCount} uploaded, ${failedCount} failed`);
                 }
-                
+
                 setTimeout(() => {
                     $progressContainer.fadeOut();
                     // Reload documents view
@@ -1602,17 +1597,17 @@ $(document).ready(function() {
                 }, 2000);
                 return;
             }
-            
+
             const file = files[index];
             const formData = new FormData();
             formData.append('id', recordId);
             formData.append('type', recordType);
             formData.append('category', category);
             formData.append('file', file);
-            
+
             // Update status
             $statusText.html(`<i class="fas fa-spinner fa-spin"></i> Uploading file ${index + 1} of ${totalFiles}: ${file.name}`);
-            
+
             // Upload file
             $.ajax({
                 url: 'api/documents.php?action=upload',
@@ -1620,9 +1615,9 @@ $(document).ready(function() {
                 data: formData,
                 processData: false,
                 contentType: false,
-                xhr: function() {
+                xhr: function () {
                     const xhr = new window.XMLHttpRequest();
-                    xhr.upload.addEventListener('progress', function(e) {
+                    xhr.upload.addEventListener('progress', function (e) {
                         if (e.lengthComputable) {
                             const fileProgress = (e.loaded / e.total) * 100;
                             const totalProgress = ((index + (fileProgress / 100)) / totalFiles) * 100;
@@ -1631,7 +1626,7 @@ $(document).ready(function() {
                     }, false);
                     return xhr;
                 },
-                success: function(response) {
+                success: function (response) {
                     if (response.status === 'success') {
                         uploadedCount++;
                     } else {
@@ -1641,7 +1636,7 @@ $(document).ready(function() {
                     // Upload next file
                     uploadNextFile(index + 1);
                 },
-                error: function(xhr, status, error) {
+                error: function (xhr, status, error) {
                     failedCount++;
                     console.error('Upload error for file:', file.name, error);
                     // Continue with next file even if this one failed
@@ -1649,39 +1644,39 @@ $(document).ready(function() {
                 }
             });
         }
-        
+
         // Start uploading from first file
         uploadNextFile(0);
     }
 
     // Setup delete handlers for documents
     function setupDeleteHandlers() {
-        $('.btn-delete-file').off('click').on('click', function(e) {
+        $('.btn-delete-file').off('click').on('click', function (e) {
             e.preventDefault();
             e.stopPropagation();
-            
+
             const fileId = $(this).data('file-id');
             const fileName = $(this).data('file-name');
             const category = $(this).data('category');
             const isClientUpload = $(this).data('is-client') === true || $(this).data('is-client') === 'true';
-            
+
             showDeleteConfirmModal(fileId, fileName, category, isClientUpload);
         });
-        
+
         // Add hover effect
-        $('.btn-delete-file').on('mouseenter', function() {
+        $('.btn-delete-file').on('mouseenter', function () {
             $(this).css('background', '#dc2626');
-        }).on('mouseleave', function() {
+        }).on('mouseleave', function () {
             $(this).css('background', '#ef4444');
         });
     }
 
     // Show delete confirmation modal
     function showDeleteConfirmModal(fileId, fileName, category, isClientUpload) {
-        const warningText = isClientUpload 
+        const warningText = isClientUpload
             ? 'This is a client-uploaded file. Deleting it will remove it from the client\'s form data.'
             : 'This file will be permanently deleted.';
-            
+
         const modalHtml = `
             <div id="delete-confirm-backdrop" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.5); z-index: 9999; display: flex; align-items: center; justify-content: center; padding: 20px;">
                 <div style="background: white; border-radius: 12px; max-width: 450px; width: 100%; padding: 30px; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);">
@@ -1705,29 +1700,29 @@ $(document).ready(function() {
                 </div>
             </div>
         `;
-        
+
         // Remove existing modal if any
         $('#delete-confirm-backdrop').remove();
-        
+
         // Add modal to body
         $('body').append(modalHtml);
-        
+
         // Handle cancel
-        $('#delete-confirm-cancel').on('click', function() {
+        $('#delete-confirm-cancel').on('click', function () {
             $('#delete-confirm-backdrop').remove();
         });
-        
+
         // Handle confirm delete
-        $('#delete-confirm-ok').on('click', function() {
+        $('#delete-confirm-ok').on('click', function () {
             if (isClientUpload) {
                 deleteClientUploadedFile(fileName, category);
             } else {
                 deleteDocument(fileId, fileName, category);
             }
         });
-        
+
         // Close on backdrop click
-        $('#delete-confirm-backdrop').on('click', function(e) {
+        $('#delete-confirm-backdrop').on('click', function (e) {
             if (e.target === this) {
                 $(this).remove();
             }
@@ -1738,7 +1733,7 @@ $(document).ready(function() {
     function deleteClientUploadedFile(fileName, category) {
         // Show loading state
         $('#delete-confirm-ok').prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Deleting...');
-        
+
         // Map category to field name
         const fieldMap = {
             'evisa': 'evisa_document_path',
@@ -1746,19 +1741,19 @@ $(document).ready(function() {
             'schengen_visa': 'schengen_visa_image',
             'bookings': 'booking_documents_path'
         };
-        
+
         const fieldName = fieldMap[category];
-        
+
         if (!fieldName) {
             alert('Error: Cannot delete this file type');
             $('#delete-confirm-backdrop').remove();
             return;
         }
-        
+
         // Get current field value
         let currentValue = recordData.questions[fieldName];
         let filePaths = [];
-        
+
         // Parse current value
         try {
             if (currentValue && currentValue.startsWith('[')) {
@@ -1769,16 +1764,16 @@ $(document).ready(function() {
         } catch (e) {
             filePaths = currentValue ? [currentValue] : [];
         }
-        
+
         // Remove the file from the array
         filePaths = filePaths.filter(path => {
             const pathFileName = path.split('/').pop();
             return pathFileName !== fileName;
         });
-        
+
         // Prepare new value
         const newValue = filePaths.length > 0 ? JSON.stringify(filePaths) : '';
-        
+
         console.log('Deleting client file:', {
             fileName: fileName,
             category: category,
@@ -1788,10 +1783,10 @@ $(document).ready(function() {
             recordId: recordId,
             recordType: recordType
         });
-        
+
         // Update database - send the field update data
         const endpoint = recordType === 'traveler' ? 'api/travelers.php' : 'api/dependents.php';
-        
+
         $.ajax({
             url: `${endpoint}?action=delete_file`,
             type: 'POST',
@@ -1802,16 +1797,16 @@ $(document).ready(function() {
                 new_value: newValue
             },
             dataType: 'json',
-            success: function(response) {
+            success: function (response) {
                 console.log('Delete response:', response);
-                
+
                 if (response.status === 'success') {
                     // Update local data
                     recordData.questions[fieldName] = newValue;
-                    
+
                     // Show success
                     $('#delete-confirm-backdrop').remove();
-                    
+
                     const notification = $(`
                         <div style="position: fixed; top: 20px; right: 20px; background: #10b981; color: white; padding: 15px 20px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 10000; display: flex; align-items: center; gap: 10px;">
                             <i class="fas fa-check-circle"></i>
@@ -1819,13 +1814,13 @@ $(document).ready(function() {
                         </div>
                     `);
                     $('body').append(notification);
-                    
+
                     setTimeout(() => {
-                        notification.fadeOut(300, function() {
+                        notification.fadeOut(300, function () {
                             $(this).remove();
                         });
                     }, 3000);
-                    
+
                     // Reload documents view
                     loadClientDocuments();
                 } else {
@@ -1834,23 +1829,23 @@ $(document).ready(function() {
                     $('#delete-confirm-backdrop').remove();
                 }
             },
-            error: function(xhr, status, error) {
+            error: function (xhr, status, error) {
                 console.error('Delete error:', {
                     status: status,
                     error: error,
                     responseText: xhr.responseText,
                     statusCode: xhr.status
                 });
-                
+
                 // Try to parse error message
                 let errorMsg = 'Server request failed';
                 try {
                     const errorResponse = JSON.parse(xhr.responseText);
                     errorMsg = errorResponse.message || errorMsg;
-                } catch(e) {
+                } catch (e) {
                     errorMsg = xhr.responseText || errorMsg;
                 }
-                
+
                 alert('Error: ' + errorMsg + '\n\nNote: You need to add the delete_file action to your ' + endpoint + ' API file.');
                 $('#delete-confirm-backdrop').remove();
             }
@@ -1861,7 +1856,7 @@ $(document).ready(function() {
     function deleteDocument(fileId, fileName, category) {
         // Show loading state
         $('#delete-confirm-ok').prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Deleting...');
-        
+
         $.ajax({
             url: 'api/documents.php?action=delete',
             type: 'POST',
@@ -1872,11 +1867,11 @@ $(document).ready(function() {
                 category: category
             },
             dataType: 'json',
-            success: function(response) {
+            success: function (response) {
                 if (response.status === 'success') {
                     // Show success message
                     $('#delete-confirm-backdrop').remove();
-                    
+
                     // Show temporary success notification
                     const notification = $(`
                         <div style="position: fixed; top: 20px; right: 20px; background: #10b981; color: white; padding: 15px 20px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 10000; display: flex; align-items: center; gap: 10px;">
@@ -1885,13 +1880,13 @@ $(document).ready(function() {
                         </div>
                     `);
                     $('body').append(notification);
-                    
+
                     setTimeout(() => {
-                        notification.fadeOut(300, function() {
+                        notification.fadeOut(300, function () {
                             $(this).remove();
                         });
                     }, 3000);
-                    
+
                     // Reload documents view
                     loadClientDocuments();
                 } else {
@@ -1899,7 +1894,7 @@ $(document).ready(function() {
                     $('#delete-confirm-backdrop').remove();
                 }
             },
-            error: function(xhr, status, error) {
+            error: function (xhr, status, error) {
                 console.error('Delete error:', error);
                 alert('Error: Failed to delete file. Please try again.');
                 $('#delete-confirm-backdrop').remove();
@@ -1920,7 +1915,7 @@ $(document).ready(function() {
             'schengen_visa': 'Previous Schengen Visa',
             'bookings': 'Booking Documents'
         };
-        
+
         const categoryDescriptions = {
             'insurance': 'Travel insurance certificates',
             'flight': 'Flight booking confirmations',
@@ -1932,10 +1927,10 @@ $(document).ready(function() {
             'schengen_visa': 'Previous Schengen visa images',
             'bookings': 'Travel booking confirmations'
         };
-        
+
         const categoryTitle = categoryTitles[category] || 'Documents';
         const categoryDescription = categoryDescriptions[category] || 'Select one or more files to upload';
-        
+
         // Create modal HTML with updated design
         const modalHtml = `
             <div id="upload-modal-backdrop" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.5); z-index: 9999; display: flex; align-items: center; justify-content: center; padding: 20px;">
@@ -1995,76 +1990,76 @@ $(document).ready(function() {
                 </div>
             </div>
         `;
-        
+
         // Remove existing modal if any
         $('#upload-modal-backdrop').remove();
-        
+
         // Add modal to body
         $('body').append(modalHtml);
-        
+
         let selectedFiles = [];
-        
+
         // Handle drop zone click
-        $('#upload-drop-zone').on('click', function() {
+        $('#upload-drop-zone').on('click', function () {
             $('#upload-file-input').click();
         });
-        
+
         // Handle drag and drop styling
-        $('#upload-drop-zone').on('dragover', function(e) {
+        $('#upload-drop-zone').on('dragover', function (e) {
             e.preventDefault();
             $(this).css({
                 'border-color': '#2563eb',
                 'background': '#eff6ff'
             });
         });
-        
-        $('#upload-drop-zone').on('dragleave', function(e) {
+
+        $('#upload-drop-zone').on('dragleave', function (e) {
             e.preventDefault();
             $(this).css({
                 'border-color': '#cbd5e1',
                 'background': '#f8fafc'
             });
         });
-        
-        $('#upload-drop-zone').on('drop', function(e) {
+
+        $('#upload-drop-zone').on('drop', function (e) {
             e.preventDefault();
             $(this).css({
                 'border-color': '#cbd5e1',
                 'background': '#f8fafc'
             });
-            
+
             const files = e.originalEvent.dataTransfer.files;
             handleFileSelection(files);
         });
-        
+
         // Handle file input change
-        $('#upload-file-input').on('change', function() {
+        $('#upload-file-input').on('change', function () {
             handleFileSelection(this.files);
         });
-        
+
         // Handle file selection
         function handleFileSelection(files) {
             selectedFiles = Array.from(files);
             displaySelectedFiles();
             $('#upload-modal-confirm').prop('disabled', selectedFiles.length === 0);
         }
-        
+
         // Display selected files
         function displaySelectedFiles() {
             if (selectedFiles.length === 0) {
                 $('#upload-file-list').html('');
                 return;
             }
-            
+
             const listHtml = selectedFiles.map((file, index) => {
                 const fileSize = formatFileSize(file.size);
                 const fileExt = file.name.split('.').pop().toUpperCase();
-                
+
                 // Determine icon color based on file type
                 let iconColor = '#2563eb';
                 if (fileExt === 'PDF') iconColor = '#ef4444';
                 else if (['JPG', 'JPEG', 'PNG'].includes(fileExt)) iconColor = '#10b981';
-                
+
                 return `
                     <div class="selected-file-item" style="display: flex; align-items: center; gap: 12px; padding: 12px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; margin-bottom: 8px; transition: all 0.2s;">
                         <div style="width: 40px; height: 40px; background: white; border: 2px solid ${iconColor}; border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
@@ -2080,62 +2075,62 @@ $(document).ready(function() {
                     </div>
                 `;
             }).join('');
-            
+
             $('#upload-file-list').html(listHtml);
-            
+
             // Handle remove file
-            $('.remove-file-btn').on('click', function() {
+            $('.remove-file-btn').on('click', function () {
                 const index = $(this).data('index');
                 selectedFiles.splice(index, 1);
                 displaySelectedFiles();
                 $('#upload-modal-confirm').prop('disabled', selectedFiles.length === 0);
             });
-            
+
             // Add hover effects
-            $('.remove-file-btn').on('mouseenter', function() {
+            $('.remove-file-btn').on('mouseenter', function () {
                 $(this).css('background', '#fecaca');
-            }).on('mouseleave', function() {
+            }).on('mouseleave', function () {
                 $(this).css('background', '#fee2e2');
             });
-            
-            $('.selected-file-item').on('mouseenter', function() {
+
+            $('.selected-file-item').on('mouseenter', function () {
                 $(this).css('background', '#f1f5f9');
-            }).on('mouseleave', function() {
+            }).on('mouseleave', function () {
                 $(this).css('background', '#f8fafc');
             });
         }
-        
+
         // Handle close button
-        $('#upload-modal-close').on('click', function() {
+        $('#upload-modal-close').on('click', function () {
             $('#upload-modal-backdrop').remove();
         });
-        
+
         // Handle cancel
-        $('#upload-modal-cancel').on('click', function() {
+        $('#upload-modal-cancel').on('click', function () {
             $('#upload-modal-backdrop').remove();
         });
-        
+
         // Close button hover effect
-        $('#upload-modal-close').on('mouseenter', function() {
+        $('#upload-modal-close').on('mouseenter', function () {
             $(this).css('background', '#e2e8f0');
-        }).on('mouseleave', function() {
+        }).on('mouseleave', function () {
             $(this).css('background', '#f1f5f9');
         });
-        
+
         // Handle upload
-        $('#upload-modal-confirm').on('click', function() {
+        $('#upload-modal-confirm').on('click', function () {
             if (selectedFiles.length === 0) return;
-            
+
             // Disable buttons during upload
             $('#upload-modal-cancel').prop('disabled', true);
             $('#upload-modal-confirm').prop('disabled', true);
             $('#upload-progress').show();
-            
+
             // Upload files one at a time
             let uploadedCount = 0;
             let failedCount = 0;
             const totalFiles = selectedFiles.length;
-            
+
             function uploadNextFile(index) {
                 if (index >= totalFiles) {
                     // All uploads complete
@@ -2144,7 +2139,7 @@ $(document).ready(function() {
                     } else {
                         $('#upload-progress-text').html(`<i class="fas fa-exclamation-circle"></i> ${uploadedCount} uploaded, ${failedCount} failed`);
                     }
-                    
+
                     setTimeout(() => {
                         $('#upload-modal-backdrop').remove();
                         // Reload the documents view
@@ -2152,17 +2147,17 @@ $(document).ready(function() {
                     }, 1500);
                     return;
                 }
-                
+
                 const file = selectedFiles[index];
                 const formData = new FormData();
                 formData.append('id', recordId);
                 formData.append('type', recordType);
                 formData.append('category', category);
                 formData.append('file', file); // Use 'file' not 'files[]'
-                
+
                 // Update progress text
                 $('#upload-progress-text').text(`Uploading file ${index + 1} of ${totalFiles}...`);
-                
+
                 // Upload file
                 $.ajax({
                     url: 'api/documents.php?action=upload', // Add action to URL
@@ -2170,9 +2165,9 @@ $(document).ready(function() {
                     data: formData,
                     processData: false,
                     contentType: false,
-                    xhr: function() {
+                    xhr: function () {
                         const xhr = new window.XMLHttpRequest();
-                        xhr.upload.addEventListener('progress', function(e) {
+                        xhr.upload.addEventListener('progress', function (e) {
                             if (e.lengthComputable) {
                                 const fileProgress = (e.loaded / e.total) * 100;
                                 const totalProgress = ((index + (fileProgress / 100)) / totalFiles) * 100;
@@ -2181,7 +2176,7 @@ $(document).ready(function() {
                         }, false);
                         return xhr;
                     },
-                    success: function(response) {
+                    success: function (response) {
                         if (response.status === 'success') {
                             uploadedCount++;
                         } else {
@@ -2191,7 +2186,7 @@ $(document).ready(function() {
                         // Upload next file
                         uploadNextFile(index + 1);
                     },
-                    error: function(xhr, status, error) {
+                    error: function (xhr, status, error) {
                         failedCount++;
                         console.error('Upload error for file:', file.name, error);
                         // Continue with next file even if this one failed
@@ -2199,13 +2194,13 @@ $(document).ready(function() {
                     }
                 });
             }
-            
+
             // Start uploading from first file
             uploadNextFile(0);
         });
-        
+
         // Close on backdrop click
-        $('#upload-modal-backdrop').on('click', function(e) {
+        $('#upload-modal-backdrop').on('click', function (e) {
             if (e.target === this) {
                 $(this).remove();
             }
@@ -2219,26 +2214,26 @@ $(document).ready(function() {
         const occupationStatus = qData.occupation_status || '';
         const fingerprintsTaken = qData.fingerprints_taken || '';
         const hasCreditCard = qData.has_credit_card || '';
-        
+
         // Check each item - some are async
         checkChecklistItem('passport', checkPassport());
-        
+
         // UK E-Visa and Share Code checks (async)
         checkUKEvisa().then(result => {
             checkChecklistItem('uk-evisa', result);
             updateChecklistCounters();
             updateChecklistButtonStatus();
         });
-        
+
         checkUKShareCode().then(result => {
             checkChecklistItem('uk-share-code', result);
             updateChecklistCounters();
             updateChecklistButtonStatus();
         });
-        
+
         checkChecklistItem('evisa', checkEvisa());
         checkChecklistItem('photographs', checkPhotographs());
-        
+
         // Conditional: Previous Schengen visa - only show if fingerprints were taken
         if (fingerprintsTaken === 'Yes') {
             $('.checklist-item[data-check="previous-schengen-visa"]').show();
@@ -2246,9 +2241,9 @@ $(document).ready(function() {
         } else {
             $('.checklist-item[data-check="previous-schengen-visa"]').hide();
         }
-        
+
         checkChecklistItem('bank-statements', checkBankStatements());
-        
+
         // Conditional: Credit card statement - only show if has credit card
         if (hasCreditCard === 'Yes') {
             $('.checklist-item[data-check="credit-card-statement"]').show();
@@ -2256,7 +2251,7 @@ $(document).ready(function() {
         } else {
             $('.checklist-item[data-check="credit-card-statement"]').hide();
         }
-        
+
         // Conditional items based on occupation
         if (occupationStatus === 'Employee') {
             // Show payslips and employment letter for employees
@@ -2285,38 +2280,38 @@ $(document).ready(function() {
             $('.checklist-item[data-check="payslips"]').hide();
             $('.checklist-item[data-check="employment"]').hide();
         }
-        
+
         // Check async items (API-uploaded documents)
         checkApplicationForm().then(result => {
             checkChecklistItem('application-form', result);
             updateChecklistCounters();
             updateChecklistButtonStatus();
         });
-        
+
         checkInsurance().then(result => {
             checkChecklistItem('insurance', result);
             updateChecklistCounters();
             updateChecklistButtonStatus();
         });
-        
+
         checkHotel().then(result => {
             checkChecklistItem('hotel', result);
             updateChecklistCounters();
             updateChecklistButtonStatus();
         });
-        
+
         checkAppointment().then(result => {
             checkChecklistItem('appointment', result);
             updateChecklistCounters();
             updateChecklistButtonStatus();
         });
-        
+
         checkFlight().then(result => {
             checkChecklistItem('flight', result);
             updateChecklistCounters();
             updateChecklistButtonStatus();
         });
-        
+
         // Initial counter update
         updateChecklistCounters();
     }
@@ -2325,7 +2320,7 @@ $(document).ready(function() {
         const completed = $('.checklist-item.completed').length;
         const total = $('.checklist-item').length;
         const pending = total - completed;
-        
+
         $('#completed-count').text(completed);
         $('#pending-count').text(pending);
     }
@@ -2335,14 +2330,14 @@ $(document).ready(function() {
         // Check if all 5 admin-uploaded document categories are complete
         const adminCategories = ['application-form', 'insurance', 'hotel', 'appointment', 'flight'];
         let allComplete = true;
-        
+
         adminCategories.forEach(category => {
             const $item = $(`.checklist-item[data-check="${category}"]`);
             if (!$item.hasClass('completed')) {
                 allComplete = false;
             }
         });
-        
+
         // Update checklist button badge
         if (allComplete) {
             $(`.nav-item[data-action="checklist"]`).addClass('has-files');
@@ -2355,7 +2350,7 @@ $(document).ready(function() {
         const $item = $(`.checklist-item[data-check="${itemName}"]`);
         const $status = $item.find('.checklist-status');
         const $filesContainer = $item.find('.checklist-files');
-        
+
         if (result.completed) {
             $item.addClass('completed');
             $status.html(`<i class="fas fa-check"></i> ${result.message}`).removeClass('pending missing');
@@ -2366,7 +2361,7 @@ $(document).ready(function() {
             $item.removeClass('completed');
             $status.html(`<i class="fas fa-times"></i> ${result.message}`).addClass('missing').removeClass('pending');
         }
-        
+
         // Add file links if available
         if (result.files && result.files.length > 0) {
             $filesContainer.empty();
@@ -2374,14 +2369,14 @@ $(document).ready(function() {
                 const fileName = file.name || file.split('/').pop();
                 const fileUrl = file.url || file;
                 const source = file.source || '';
-                
+
                 // Debug: Log the file URL being used
                 console.log(`Checklist item ${itemName} - File ${index + 1}:`, {
                     fileName: fileName,
                     fileUrl: fileUrl,
                     source: source
                 });
-                
+
                 // Create source badge if applicable
                 let sourceBadge = '';
                 if (source === 'Client Upload') {
@@ -2389,7 +2384,7 @@ $(document).ready(function() {
                 } else if (source === 'Admin Upload') {
                     sourceBadge = '<span class="file-source-badge admin-upload"><i class="fas fa-shield-alt"></i> Admin</span>';
                 }
-                
+
                 const $link = $(`
                     <a href="${fileUrl}" target="_blank" class="checklist-file-link" data-file-url="${fileUrl}" data-file-name="${fileName}">
                         <i class="fas fa-file-alt"></i>
@@ -2400,7 +2395,7 @@ $(document).ready(function() {
                 `);
                 $filesContainer.append($link);
             });
-            
+
             // Attach hover preview handlers
             attachFilePreviewHandlers();
         }
@@ -2412,27 +2407,27 @@ $(document).ready(function() {
 
     function attachFilePreviewHandlers() {
         $('.checklist-file-link').off('mouseenter mouseleave mousemove');
-        
-        $('.checklist-file-link').on('mouseenter', function(e) {
+
+        $('.checklist-file-link').on('mouseenter', function (e) {
             const $link = $(this);
             const fileUrl = $link.data('file-url');
             const fileName = $link.data('file-name');
-            
+
             // Clear any existing timeout
             clearTimeout(previewTimeout);
-            
+
             // Set a delay before showing preview
             previewTimeout = setTimeout(() => {
                 showFilePreview(fileUrl, fileName, e);
             }, 500); // 500ms delay
         });
-        
-        $('.checklist-file-link').on('mouseleave', function() {
+
+        $('.checklist-file-link').on('mouseleave', function () {
             clearTimeout(previewTimeout);
             hideFilePreview();
         });
-        
-        $('.checklist-file-link').on('mousemove', function(e) {
+
+        $('.checklist-file-link').on('mousemove', function (e) {
             updatePreviewPosition(e);
         });
     }
@@ -2441,25 +2436,25 @@ $(document).ready(function() {
         const $tooltip = $('#file-preview-tooltip');
         const $content = $('#preview-content');
         const $filename = $('#preview-filename');
-        
+
         // Set filename
         $filename.text(fileName);
-        
+
         // Show loading state
         $content.html('<div class="file-preview-loading"><i class="fas fa-spinner"></i></div>');
-        
+
         // Determine file type
         const extension = fileName.split('.').pop().toLowerCase();
         const isImage = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'svg'].includes(extension);
         const isPDF = extension === 'pdf';
-        
+
         if (isImage) {
             // Preview image
             const img = new Image();
-            img.onload = function() {
+            img.onload = function () {
                 $content.html(`<img src="${fileUrl}" alt="${fileName}">`);
             };
-            img.onerror = function() {
+            img.onerror = function () {
                 $content.html('<div class="file-preview-error"><i class="fas fa-exclamation-triangle"></i><p>Unable to load preview</p></div>');
             };
             img.src = fileUrl;
@@ -2470,11 +2465,11 @@ $(document).ready(function() {
             // Unsupported file type
             $content.html('<div class="file-preview-error"><i class="fas fa-file"></i><p>Preview not available for this file type</p></div>');
         }
-        
+
         // Position and show tooltip
         updatePreviewPosition(event);
         currentPreviewUrl = fileUrl;
-        
+
         setTimeout(() => {
             $tooltip.addClass('show');
         }, 100);
@@ -2484,7 +2479,7 @@ $(document).ready(function() {
         const $tooltip = $('#file-preview-tooltip');
         $tooltip.removeClass('show');
         currentPreviewUrl = null;
-        
+
         // Clear content after fade out
         setTimeout(() => {
             if (!currentPreviewUrl) {
@@ -2501,20 +2496,20 @@ $(document).ready(function() {
         const windowHeight = $(window).height();
         const scrollTop = $(window).scrollTop();
         const scrollLeft = $(window).scrollLeft();
-        
+
         let left = event.pageX + 20;
         let top = event.pageY + 20;
-        
+
         // Adjust if tooltip goes off right edge
         if (left + tooltipWidth > windowWidth + scrollLeft) {
             left = event.pageX - tooltipWidth - 20;
         }
-        
+
         // Adjust if tooltip goes off bottom edge
         if (top + tooltipHeight > windowHeight + scrollTop) {
             top = event.pageY - tooltipHeight - 20;
         }
-        
+
         // Ensure tooltip doesn't go off top or left edge
         if (top < scrollTop + 10) {
             top = scrollTop + 10;
@@ -2522,7 +2517,7 @@ $(document).ready(function() {
         if (left < scrollLeft + 10) {
             left = scrollLeft + 10;
         }
-        
+
         $tooltip.css({
             left: left + 'px',
             top: top + 'px'
@@ -2533,7 +2528,7 @@ $(document).ready(function() {
     function checkApplicationForm() {
         // Check if application form documents exist
         return new Promise((resolve) => {
-            $.get(`api/documents.php?action=get_documents&id=${recordId}&type=${recordType}&category=application`, function(res) {
+            $.get(`api/documents.php?action=get_documents&id=${recordId}&type=${recordType}&category=application`, function (res) {
                 if (res.status === 'success' && res.documents && res.documents.length > 0) {
                     const files = res.documents.map(doc => {
                         // API already formats the URL with web path
@@ -2547,8 +2542,8 @@ $(document).ready(function() {
                             url: fileUrl
                         };
                     });
-                    resolve({ 
-                        completed: true, 
+                    resolve({
+                        completed: true,
                         message: `Uploaded (${res.documents.length} file${res.documents.length > 1 ? 's' : ''})`,
                         files: files
                     });
@@ -2565,21 +2560,21 @@ $(document).ready(function() {
         // Check if UK E-Visa documents exist from BOTH sources:
         // 1. Client-uploaded files (evisa_document_path field)
         // 2. Admin-uploaded files (Documents section - evisa category)
-        
+
         return new Promise((resolve) => {
             const qData = recordData.questions || {};
             let allFiles = [];
-            
+
             // First, check client-uploaded files
             let clientFiles = qData.evisa_document_path;
             if (typeof clientFiles === 'string' && clientFiles) {
                 try {
                     clientFiles = JSON.parse(clientFiles);
-                } catch(e) {
+                } catch (e) {
                     clientFiles = clientFiles ? [clientFiles] : [];
                 }
             }
-            
+
             if (Array.isArray(clientFiles) && clientFiles.length > 0) {
                 clientFiles.forEach(file => {
                     let fileUrl = file;
@@ -2594,9 +2589,9 @@ $(document).ready(function() {
                     });
                 });
             }
-            
+
             // Then, check admin-uploaded files from Documents section
-            $.get(`api/documents.php?action=get_documents&id=${recordId}&type=${recordType}&category=evisa`, function(res) {
+            $.get(`api/documents.php?action=get_documents&id=${recordId}&type=${recordType}&category=evisa`, function (res) {
                 if (res.status === 'success' && res.documents && res.documents.length > 0) {
                     res.documents.forEach(doc => {
                         let fileUrl = doc.url || doc.file_path;
@@ -2610,11 +2605,11 @@ $(document).ready(function() {
                         });
                     });
                 }
-                
+
                 // Return result
                 if (allFiles.length > 0) {
-                    resolve({ 
-                        completed: true, 
+                    resolve({
+                        completed: true,
                         message: `${allFiles.length} file${allFiles.length > 1 ? 's' : ''} uploaded`,
                         files: allFiles
                     });
@@ -2624,8 +2619,8 @@ $(document).ready(function() {
             }, 'json').fail(() => {
                 // If API call fails, still return client files if any
                 if (allFiles.length > 0) {
-                    resolve({ 
-                        completed: true, 
+                    resolve({
+                        completed: true,
                         message: `${allFiles.length} file${allFiles.length > 1 ? 's' : ''} uploaded`,
                         files: allFiles
                     });
@@ -2640,21 +2635,21 @@ $(document).ready(function() {
         // Check if UK Share Code documents exist from BOTH sources:
         // 1. Client-uploaded files (share_code_document_path field)
         // 2. Admin-uploaded files (Documents section - share_code category)
-        
+
         return new Promise((resolve) => {
             const qData = recordData.questions || {};
             let allFiles = [];
-            
+
             // First, check client-uploaded files
             let clientFiles = qData.share_code_document_path;
             if (typeof clientFiles === 'string' && clientFiles) {
                 try {
                     clientFiles = JSON.parse(clientFiles);
-                } catch(e) {
+                } catch (e) {
                     clientFiles = clientFiles ? [clientFiles] : [];
                 }
             }
-            
+
             if (Array.isArray(clientFiles) && clientFiles.length > 0) {
                 clientFiles.forEach(file => {
                     let fileUrl = file;
@@ -2669,9 +2664,9 @@ $(document).ready(function() {
                     });
                 });
             }
-            
+
             // Then, check admin-uploaded files from Documents section
-            $.get(`api/documents.php?action=get_documents&id=${recordId}&type=${recordType}&category=share_code`, function(res) {
+            $.get(`api/documents.php?action=get_documents&id=${recordId}&type=${recordType}&category=share_code`, function (res) {
                 if (res.status === 'success' && res.documents && res.documents.length > 0) {
                     res.documents.forEach(doc => {
                         let fileUrl = doc.url || doc.file_path;
@@ -2685,11 +2680,11 @@ $(document).ready(function() {
                         });
                     });
                 }
-                
+
                 // Return result
                 if (allFiles.length > 0) {
-                    resolve({ 
-                        completed: true, 
+                    resolve({
+                        completed: true,
                         message: `${allFiles.length} file${allFiles.length > 1 ? 's' : ''} uploaded`,
                         files: allFiles
                     });
@@ -2699,8 +2694,8 @@ $(document).ready(function() {
             }, 'json').fail(() => {
                 // If API call fails, still return client files if any
                 if (allFiles.length > 0) {
-                    resolve({ 
-                        completed: true, 
+                    resolve({
+                        completed: true,
                         message: `${allFiles.length} file${allFiles.length > 1 ? 's' : ''} uploaded`,
                         files: allFiles
                     });
@@ -2714,7 +2709,7 @@ $(document).ready(function() {
     function checkPassport() {
         const qData = recordData.questions || {};
         const pData = recordData.personal || {};
-        
+
         if (pData.passport_number && pData.passport_expiry) {
             return { completed: true, message: `Passport #${pData.passport_number}` };
         }
@@ -2724,11 +2719,11 @@ $(document).ready(function() {
     function checkEvisa() {
         const qData = recordData.questions || {};
         let evisaFiles = qData.evisa_document_path || qData.share_code_document_path;
-        
+
         if (typeof evisaFiles === 'string') {
-            try { evisaFiles = JSON.parse(evisaFiles); } catch(e) { evisaFiles = []; }
+            try { evisaFiles = JSON.parse(evisaFiles); } catch (e) { evisaFiles = []; }
         }
-        
+
         if (Array.isArray(evisaFiles) && evisaFiles.length > 0) {
             const files = evisaFiles.map(file => {
                 let fileUrl = file;
@@ -2744,8 +2739,8 @@ $(document).ready(function() {
                     url: fileUrl
                 };
             });
-            return { 
-                completed: true, 
+            return {
+                completed: true,
                 message: `Client uploaded (${evisaFiles.length} file${evisaFiles.length > 1 ? 's' : ''})`,
                 files: files
             };
@@ -2756,11 +2751,11 @@ $(document).ready(function() {
     function checkPhotographs() {
         const qData = recordData.questions || {};
         let photoFiles = qData.schengen_visa_image;
-        
+
         if (typeof photoFiles === 'string') {
-            try { photoFiles = JSON.parse(photoFiles); } catch(e) { photoFiles = []; }
+            try { photoFiles = JSON.parse(photoFiles); } catch (e) { photoFiles = []; }
         }
-        
+
         if (Array.isArray(photoFiles) && photoFiles.length > 0) {
             const files = photoFiles.map((file, idx) => {
                 let fileUrl = file;
@@ -2776,8 +2771,8 @@ $(document).ready(function() {
                     url: fileUrl
                 };
             });
-            return { 
-                completed: true, 
+            return {
+                completed: true,
                 message: `Client uploaded (${photoFiles.length} photo${photoFiles.length > 1 ? 's' : ''})`,
                 files: files
             };
@@ -2787,15 +2782,15 @@ $(document).ready(function() {
 
     function checkPreviousSchengenVisa() {
         const qData = recordData.questions || {};
-        
+
         // This function is only called when fingerprints_taken === 'Yes'
         // Check if visa image was uploaded
         let visaFiles = qData.schengen_visa_image;
-        
+
         if (typeof visaFiles === 'string') {
-            try { visaFiles = JSON.parse(visaFiles); } catch(e) { visaFiles = []; }
+            try { visaFiles = JSON.parse(visaFiles); } catch (e) { visaFiles = []; }
         }
-        
+
         if (Array.isArray(visaFiles) && visaFiles.length > 0) {
             const files = visaFiles.map((file, idx) => {
                 let fileUrl = file;
@@ -2811,24 +2806,24 @@ $(document).ready(function() {
                     url: fileUrl
                 };
             });
-            return { 
-                completed: true, 
+            return {
+                completed: true,
                 message: `Client uploaded (${visaFiles.length} file${visaFiles.length > 1 ? 's' : ''})`,
                 files: files
             };
         }
-        
+
         return { completed: false, pending: true, message: 'Client needs to upload previous Schengen visa' };
     }
 
     function checkBankStatements() {
         const qData = recordData.questions || {};
         let bankFiles = qData.booking_documents_path;
-        
+
         if (typeof bankFiles === 'string') {
-            try { bankFiles = JSON.parse(bankFiles); } catch(e) { bankFiles = []; }
+            try { bankFiles = JSON.parse(bankFiles); } catch (e) { bankFiles = []; }
         }
-        
+
         if (Array.isArray(bankFiles) && bankFiles.length > 0) {
             const bankDocs = bankFiles.filter(f => f.toLowerCase().includes('bank') || f.toLowerCase().includes('statement'));
             if (bankDocs.length > 0) {
@@ -2846,8 +2841,8 @@ $(document).ready(function() {
                         url: fileUrl
                     };
                 });
-                return { 
-                    completed: true, 
+                return {
+                    completed: true,
                     message: `Client uploaded (${bankDocs.length} file${bankDocs.length > 1 ? 's' : ''})`,
                     files: files
                 };
@@ -2859,14 +2854,14 @@ $(document).ready(function() {
     function checkCreditCardStatement() {
         const qData = recordData.questions || {};
         let bookingFiles = qData.booking_documents_path;
-        
+
         if (typeof bookingFiles === 'string') {
-            try { bookingFiles = JSON.parse(bookingFiles); } catch(e) { bookingFiles = []; }
+            try { bookingFiles = JSON.parse(bookingFiles); } catch (e) { bookingFiles = []; }
         }
-        
+
         if (Array.isArray(bookingFiles) && bookingFiles.length > 0) {
-            const creditCardDocs = bookingFiles.filter(f => 
-                f.toLowerCase().includes('credit') || 
+            const creditCardDocs = bookingFiles.filter(f =>
+                f.toLowerCase().includes('credit') ||
                 f.toLowerCase().includes('card') ||
                 f.toLowerCase().includes('cc')
             );
@@ -2885,8 +2880,8 @@ $(document).ready(function() {
                         url: fileUrl
                     };
                 });
-                return { 
-                    completed: true, 
+                return {
+                    completed: true,
                     message: `Client uploaded (${creditCardDocs.length} file${creditCardDocs.length > 1 ? 's' : ''})`,
                     files: files
                 };
@@ -2898,11 +2893,11 @@ $(document).ready(function() {
     function checkPayslips() {
         const qData = recordData.questions || {};
         let bookingFiles = qData.booking_documents_path;
-        
+
         if (typeof bookingFiles === 'string') {
-            try { bookingFiles = JSON.parse(bookingFiles); } catch(e) { bookingFiles = []; }
+            try { bookingFiles = JSON.parse(bookingFiles); } catch (e) { bookingFiles = []; }
         }
-        
+
         if (Array.isArray(bookingFiles) && bookingFiles.length > 0) {
             const payslipDocs = bookingFiles.filter(f => f.toLowerCase().includes('payslip') || f.toLowerCase().includes('salary'));
             if (payslipDocs.length > 0) {
@@ -2918,8 +2913,8 @@ $(document).ready(function() {
                         url: fileUrl
                     };
                 });
-                return { 
-                    completed: true, 
+                return {
+                    completed: true,
                     message: `Client uploaded (${payslipDocs.length} file${payslipDocs.length > 1 ? 's' : ''})`,
                     files: files
                 };
@@ -2931,11 +2926,11 @@ $(document).ready(function() {
     function checkEmploymentLetter() {
         const qData = recordData.questions || {};
         let bookingFiles = qData.booking_documents_path;
-        
+
         if (typeof bookingFiles === 'string') {
-            try { bookingFiles = JSON.parse(bookingFiles); } catch(e) { bookingFiles = []; }
+            try { bookingFiles = JSON.parse(bookingFiles); } catch (e) { bookingFiles = []; }
         }
-        
+
         if (Array.isArray(bookingFiles) && bookingFiles.length > 0) {
             const empDocs = bookingFiles.filter(f => f.toLowerCase().includes('employment') || f.toLowerCase().includes('letter') || f.toLowerCase().includes('leave') || f.toLowerCase().includes('noc'));
             if (empDocs.length > 0) {
@@ -2951,8 +2946,8 @@ $(document).ready(function() {
                         url: fileUrl
                     };
                 });
-                return { 
-                    completed: true, 
+                return {
+                    completed: true,
                     message: `Client uploaded (${empDocs.length} file${empDocs.length > 1 ? 's' : ''})`,
                     files: files
                 };
@@ -2964,11 +2959,11 @@ $(document).ready(function() {
     function checkSelfEmployedDocs() {
         const qData = recordData.questions || {};
         let bookingFiles = qData.booking_documents_path;
-        
+
         if (typeof bookingFiles === 'string') {
-            try { bookingFiles = JSON.parse(bookingFiles); } catch(e) { bookingFiles = []; }
+            try { bookingFiles = JSON.parse(bookingFiles); } catch (e) { bookingFiles = []; }
         }
-        
+
         if (Array.isArray(bookingFiles) && bookingFiles.length > 0) {
             const taxDocs = bookingFiles.filter(f => f.toLowerCase().includes('tax') || f.toLowerCase().includes('accountant') || f.toLowerCase().includes('return') || f.toLowerCase().includes('self'));
             if (taxDocs.length > 0) {
@@ -2984,8 +2979,8 @@ $(document).ready(function() {
                         url: fileUrl
                     };
                 });
-                return { 
-                    completed: true, 
+                return {
+                    completed: true,
                     message: `Client uploaded (${taxDocs.length} file${taxDocs.length > 1 ? 's' : ''})`,
                     files: files
                 };
@@ -2997,11 +2992,11 @@ $(document).ready(function() {
     function checkStudentStatusLetter() {
         const qData = recordData.questions || {};
         let bookingFiles = qData.booking_documents_path;
-        
+
         if (typeof bookingFiles === 'string') {
-            try { bookingFiles = JSON.parse(bookingFiles); } catch(e) { bookingFiles = []; }
+            try { bookingFiles = JSON.parse(bookingFiles); } catch (e) { bookingFiles = []; }
         }
-        
+
         if (Array.isArray(bookingFiles) && bookingFiles.length > 0) {
             const studentDocs = bookingFiles.filter(f => f.toLowerCase().includes('student') || f.toLowerCase().includes('school') || f.toLowerCase().includes('university') || f.toLowerCase().includes('enrollment'));
             if (studentDocs.length > 0) {
@@ -3017,8 +3012,8 @@ $(document).ready(function() {
                         url: fileUrl
                     };
                 });
-                return { 
-                    completed: true, 
+                return {
+                    completed: true,
                     message: `Client uploaded (${studentDocs.length} file${studentDocs.length > 1 ? 's' : ''})`,
                     files: files
                 };
@@ -3029,7 +3024,7 @@ $(document).ready(function() {
 
     function checkInsurance() {
         return new Promise((resolve) => {
-            $.get(`api/documents.php?action=get_documents&id=${recordId}&type=${recordType}&category=insurance`, function(res) {
+            $.get(`api/documents.php?action=get_documents&id=${recordId}&type=${recordType}&category=insurance`, function (res) {
                 if (res.status === 'success' && res.documents && res.documents.length > 0) {
                     const files = res.documents.map(doc => {
                         // API already formats the URL with web path
@@ -3043,8 +3038,8 @@ $(document).ready(function() {
                             url: fileUrl
                         };
                     });
-                    resolve({ 
-                        completed: true, 
+                    resolve({
+                        completed: true,
                         message: `Uploaded (${res.documents.length} file${res.documents.length > 1 ? 's' : ''})`,
                         files: files
                     });
@@ -3059,7 +3054,7 @@ $(document).ready(function() {
 
     function checkHotel() {
         return new Promise((resolve) => {
-            $.get(`api/documents.php?action=get_documents&id=${recordId}&type=${recordType}&category=hotel`, function(res) {
+            $.get(`api/documents.php?action=get_documents&id=${recordId}&type=${recordType}&category=hotel`, function (res) {
                 if (res.status === 'success' && res.documents && res.documents.length > 0) {
                     const files = res.documents.map(doc => {
                         // API already formats the URL with web path
@@ -3073,8 +3068,8 @@ $(document).ready(function() {
                             url: fileUrl
                         };
                     });
-                    resolve({ 
-                        completed: true, 
+                    resolve({
+                        completed: true,
                         message: `Uploaded (${res.documents.length} file${res.documents.length > 1 ? 's' : ''})`,
                         files: files
                     });
@@ -3089,7 +3084,7 @@ $(document).ready(function() {
 
     function checkFlight() {
         return new Promise((resolve) => {
-            $.get(`api/documents.php?action=get_documents&id=${recordId}&type=${recordType}&category=flight`, function(res) {
+            $.get(`api/documents.php?action=get_documents&id=${recordId}&type=${recordType}&category=flight`, function (res) {
                 if (res.status === 'success' && res.documents && res.documents.length > 0) {
                     const files = res.documents.map(doc => {
                         // API already formats the URL with web path
@@ -3103,8 +3098,8 @@ $(document).ready(function() {
                             url: fileUrl
                         };
                     });
-                    resolve({ 
-                        completed: true, 
+                    resolve({
+                        completed: true,
                         message: `Uploaded (${res.documents.length} file${res.documents.length > 1 ? 's' : ''})`,
                         files: files
                     });
@@ -3119,7 +3114,7 @@ $(document).ready(function() {
 
     function checkAppointment() {
         return new Promise((resolve) => {
-            $.get(`api/documents.php?action=get_documents&id=${recordId}&type=${recordType}&category=appointment`, function(res) {
+            $.get(`api/documents.php?action=get_documents&id=${recordId}&type=${recordType}&category=appointment`, function (res) {
                 if (res.status === 'success' && res.documents && res.documents.length > 0) {
                     const files = res.documents.map(doc => {
                         // API already formats the URL with web path
@@ -3133,8 +3128,8 @@ $(document).ready(function() {
                             url: fileUrl
                         };
                     });
-                    resolve({ 
-                        completed: true, 
+                    resolve({
+                        completed: true,
                         message: `Uploaded (${res.documents.length} file${res.documents.length > 1 ? 's' : ''})`,
                         files: files
                     });
@@ -3171,29 +3166,29 @@ $(document).ready(function() {
         }
 
         // Handle file link clicks
-        $(document).on('click', 'a[href*=".pdf"], a[href*=".jpg"], a[href*=".jpeg"], a[href*=".png"], a[href*=".gif"], a[href*=".webp"]', function(e) {
+        $(document).on('click', 'a[href*=".pdf"], a[href*=".jpg"], a[href*=".jpeg"], a[href*=".png"], a[href*=".gif"], a[href*=".webp"]', function (e) {
             const href = $(this).attr('href');
-            
+
             // Check if it's a file we can preview
             if (href && (href.includes('.pdf') || href.match(/\.(jpg|jpeg|png|gif|webp)$/i))) {
                 e.preventDefault();
                 const fileName = $(this).text().trim() || 'Document';
                 const fileUrl = href;
-                
+
                 openFilePreview(fileName, fileUrl);
             }
         });
 
         // Close modal handlers
         $(document).on('click', '.file-preview-close', closeFilePreview);
-        $(document).on('click', '.file-preview-modal', function(e) {
+        $(document).on('click', '.file-preview-modal', function (e) {
             if ($(e.target).hasClass('file-preview-modal')) {
                 closeFilePreview();
             }
         });
-        
+
         // ESC key to close
-        $(document).on('keydown', function(e) {
+        $(document).on('keydown', function (e) {
             if (e.key === 'Escape' && $('#file-preview-modal').hasClass('active')) {
                 closeFilePreview();
             }
@@ -3204,10 +3199,10 @@ $(document).ready(function() {
         const modal = $('#file-preview-modal');
         const content = modal.find('.file-preview-content');
         const title = modal.find('.file-preview-title');
-        
+
         // Set title
         title.text(fileName);
-        
+
         // Show loading
         content.html(`
             <div class="file-preview-loading">
@@ -3215,14 +3210,14 @@ $(document).ready(function() {
                 <p>Loading...</p>
             </div>
         `);
-        
+
         // Show modal
         modal.addClass('active');
         $('body').css('overflow', 'hidden');
-        
+
         // Determine file type and load content
         const fileExtension = fileUrl.split('.').pop().toLowerCase();
-        
+
         if (fileExtension === 'pdf') {
             // PDF Preview - responsive iframe
             content.html(`
@@ -3233,7 +3228,7 @@ $(document).ready(function() {
         } else if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(fileExtension)) {
             // Image Preview - responsive with zoom controls
             const img = new Image();
-            img.onload = function() {
+            img.onload = function () {
                 content.html(`
                     <div class="file-preview-image-container">
                         <div class="image-controls">
@@ -3252,27 +3247,27 @@ $(document).ready(function() {
                         </div>
                     </div>
                 `);
-                
+
                 // Add zoom functionality
                 let scale = 1;
                 const $img = content.find('.preview-image');
-                
-                content.find('.zoom-in').on('click', function() {
+
+                content.find('.zoom-in').on('click', function () {
                     scale = Math.min(scale + 0.25, 3);
                     $img.css('transform', `scale(${scale})`);
                 });
-                
-                content.find('.zoom-out').on('click', function() {
+
+                content.find('.zoom-out').on('click', function () {
                     scale = Math.max(scale - 0.25, 0.5);
                     $img.css('transform', `scale(${scale})`);
                 });
-                
-                content.find('.zoom-reset').on('click', function() {
+
+                content.find('.zoom-reset').on('click', function () {
                     scale = 1;
                     $img.css('transform', 'scale(1)');
                 });
             };
-            img.onerror = function() {
+            img.onerror = function () {
                 content.html(`
                     <div class="file-preview-loading">
                         <i class="fas fa-exclamation-triangle" style="color: #ef4444; font-size: 3rem;"></i>
@@ -3302,7 +3297,7 @@ $(document).ready(function() {
         const modal = $('#file-preview-modal');
         modal.removeClass('active');
         $('body').css('overflow', '');
-        
+
         // Clear content after animation
         setTimeout(() => {
             modal.find('.file-preview-content').html('');
@@ -3313,23 +3308,23 @@ $(document).ready(function() {
     function setupStickyHeader() {
         const $nav = $('.horizontal-nav');
         let lastScroll = 0;
-        
-        $(window).on('scroll', function() {
+
+        $(window).on('scroll', function () {
             const currentScroll = $(this).scrollTop();
-            
+
             if (currentScroll > 10) {
                 $nav.addClass('scrolled');
             } else {
                 $nav.removeClass('scrolled');
             }
-            
+
             lastScroll = currentScroll;
         });
     }
 
     // Initialize file preview on document ready
     setupFilePreview();
-    
+
     // Initialize sticky header
     setupStickyHeader();
 });
@@ -3362,31 +3357,31 @@ console.log('Form data viewer script loaded');
 function generateAustriaPDF(recordId, recordType) {
     console.log('🔄 Generating Austria PDF with user data...');
     console.log('Record ID:', recordId, 'Type:', recordType);
-    
+
     if (typeof window.recordData === 'undefined' || !window.recordData) {
         alert('⚠️ Error: User data not loaded yet.\n\nPlease wait for the page to fully load and try again.');
         console.error('window.recordData is not defined or empty');
         return;
     }
-    
+
     const pData = window.recordData.personal || {};
     const qData = window.recordData.questions || {};
-    
+
     console.log('📋 recordData found:', window.recordData);
     console.log('📋 personal data:', pData);
-    
+
     if (Object.keys(pData).length === 0) {
         alert('⚠️ Error: Personal data is empty.\n\nThe page may still be loading. Please wait a moment and try again.');
         console.error('Personal data object is empty');
         return;
     }
-    
+
     const firstName = pData.first_name || '';
     const lastName = pData.last_name || '';
     const fullName = `${firstName} ${lastName}`.trim() || 'N/A';
     const passportNumber = pData.passport_no || 'N/A';
     const dateOfBirth = pData.dob || 'N/A';
-    
+
     let formattedDOB = dateOfBirth;
     if (dateOfBirth && dateOfBirth !== '0000-00-00') {
         const dobParts = dateOfBirth.split('-');
@@ -3394,16 +3389,16 @@ function generateAustriaPDF(recordId, recordType) {
             formattedDOB = `${dobParts[2]}/${dobParts[1]}/${dobParts[0]}`;
         }
     }
-    
+
     console.log('📋 User Data Extracted:', {
         fullName,
         passportNumber,
         dateOfBirth: formattedDOB
     });
-    
+
     const travelCountryRaw = pData.travel_country || qData.travel_country || DEFAULT_TRAVEL_COUNTRY;
     const travelCountry = (travelCountryRaw || DEFAULT_TRAVEL_COUNTRY).trim() || DEFAULT_TRAVEL_COUNTRY;
-    
+
     const loadingDiv = document.createElement('div');
     loadingDiv.id = 'pdf-generation-loading';
     loadingDiv.innerHTML = `
@@ -3434,7 +3429,7 @@ function generateAustriaPDF(recordId, recordType) {
         <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%;
                     background: rgba(0,0,0,0.5); z-index: 9999;"></div>
     `;
-    
+
     if (!document.getElementById('pdf-gen-styles')) {
         const style = document.createElement('style');
         style.id = 'pdf-gen-styles';
@@ -3446,9 +3441,9 @@ function generateAustriaPDF(recordId, recordType) {
         `;
         document.head.appendChild(style);
     }
-    
+
     document.body.appendChild(loadingDiv);
-    
+
     const parseId = (value) => {
         if (value === null || value === undefined || value === '') {
             return null;
@@ -3456,9 +3451,9 @@ function generateAustriaPDF(recordId, recordType) {
         const parsed = parseInt(value, 10);
         return Number.isNaN(parsed) ? null : parsed;
     };
-    
+
     const currentRecordId = parseId(recordId);
-    
+
     if (!currentRecordId) {
         alert('⚠️ Error: Unable to determine record ID.\n\nThis page must be opened with a valid ID parameter.');
         const loading = document.getElementById('pdf-generation-loading');
@@ -3466,7 +3461,7 @@ function generateAustriaPDF(recordId, recordType) {
         console.error('❌ Missing record ID. recordId:', recordId, 'recordType:', recordType, 'personal:', pData);
         return;
     }
-    
+
     const normalizedRecordType = (recordType || '').trim() || 'traveler';
     const requestPayload = {
         travelerId: currentRecordId,
@@ -3474,10 +3469,7 @@ function generateAustriaPDF(recordId, recordType) {
         recordType: normalizedRecordType,
         flatten: true
     };
-    
-    console.log('📦 Request payload for Node server:', requestPayload);
-    console.log('📮 Posting to:', PDF_FILL_ENDPOINT);
-    
+     let PDF_FILL_ENDPOINT ="https://doc.visad.co.uk/api/visa/fill-form"
     fetch(PDF_FILL_ENDPOINT, {
         method: 'POST',
         headers: {
@@ -3491,10 +3483,10 @@ function generateAustriaPDF(recordId, recordType) {
         .then(async (response) => {
             console.log('📡 Response received!');
             console.log('Status:', response.status, response.statusText);
-            
+
             const loading = document.getElementById('pdf-generation-loading');
             if (loading) document.body.removeChild(loading);
-            
+
             if (!response.ok) {
                 let errorMessage = `Server error: ${response.status} - ${response.statusText}`;
                 try {
@@ -3512,13 +3504,13 @@ function generateAustriaPDF(recordId, recordType) {
                 }
                 throw new Error(errorMessage);
             }
-            
+
             const blob = await response.blob();
             return { blob, response };
         })
         .then(({ blob, response }) => {
             console.log('✅ PDF received! Size:', blob.size, 'bytes');
-            
+
             const disposition = response.headers.get('content-disposition');
             const headerFilename = extractFilenameFromDisposition(disposition);
             const timestamp = new Date().toISOString().split('T')[0];
@@ -3526,16 +3518,16 @@ function generateAustriaPDF(recordId, recordType) {
             const sanitizedCountry = travelCountry.replace(/[^a-zA-Z0-9]/g, '_') || 'Austria';
             const fallbackFilename = `${sanitizedCountry}_Visa_${sanitizedName}_${timestamp}.pdf`;
             const filename = headerFilename || fallbackFilename;
-            
+
             downloadPdfBlob(blob, filename, true);
             showPDFSuccessNotification(fullName, filename);
         })
         .catch((error) => {
             console.error('❌ PDF Generation Failed:', error);
-            
+
             const loading = document.getElementById('pdf-generation-loading');
             if (loading) document.body.removeChild(loading);
-            
+
             alert(`❌ PDF Generation Failed!\n\n${error.message}\n\nPlease check the console for more details.`);
             showPDFErrorNotification(error.message);
         });
@@ -3557,7 +3549,7 @@ function showPDFSuccessNotification(userName, filename) {
         min-width: 350px;
         animation: slideInRight 0.4s ease-out;
     `;
-    
+
     notification.innerHTML = `
         <div style="display: flex; align-items: flex-start; gap: 15px;">
             <i class="fas fa-check-circle" style="font-size: 28px; flex-shrink: 0;"></i>
@@ -3577,9 +3569,9 @@ function showPDFSuccessNotification(userName, filename) {
             </button>
         </div>
     `;
-    
+
     document.body.appendChild(notification);
-    
+
     // Auto remove after 5 seconds
     setTimeout(() => {
         if (document.body.contains(notification)) {
@@ -3609,7 +3601,7 @@ function showPDFErrorNotification(errorMessage) {
         min-width: 350px;
         animation: slideInRight 0.4s ease-out;
     `;
-    
+
     notification.innerHTML = `
         <div style="display: flex; align-items: flex-start; gap: 15px;">
             <i class="fas fa-exclamation-circle" style="font-size: 28px; flex-shrink: 0;"></i>
@@ -3628,9 +3620,9 @@ function showPDFErrorNotification(errorMessage) {
             </button>
         </div>
     `;
-    
+
     document.body.appendChild(notification);
-    
+
     // Auto remove after 8 seconds
     setTimeout(() => {
         if (document.body.contains(notification)) {
@@ -3687,15 +3679,15 @@ function showHealthCheckResultWithUserData(success, details, userInfo) {
     // Create result modal
     const resultDiv = document.createElement('div');
     resultDiv.id = 'api-health-result';
-    
-    const icon = success 
+
+    const icon = success
         ? '<i class="fas fa-check-circle" style="color: #27ae60;"></i>'
         : '<i class="fas fa-times-circle" style="color: #e74c3c;"></i>';
-    
+
     const bgColor = success ? '#d4edda' : '#f8d7da';
     const borderColor = success ? '#27ae60' : '#e74c3c';
     const textColor = success ? '#155724' : '#721c24';
-    
+
     // Build user info section
     let userInfoHTML = '';
     if (userInfo) {
@@ -3722,9 +3714,9 @@ function showHealthCheckResultWithUserData(success, details, userInfo) {
             </div>
         `;
     }
-    
+
     let apiDetailsHTML = '';
-    
+
     if (success) {
         apiDetailsHTML = `
             <div style="background: ${bgColor}; padding: 20px; border-radius: 10px; 
@@ -3764,7 +3756,7 @@ function showHealthCheckResultWithUserData(success, details, userInfo) {
             </div>
         `;
     }
-    
+
     resultDiv.innerHTML = `
         <div style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
                     background: white; padding: 40px; border-radius: 15px;
@@ -3803,15 +3795,15 @@ function showHealthCheckResultWithUserData(success, details, userInfo) {
              style="position: fixed; top: 0; left: 0; width: 100%; height: 100%;
                     background: rgba(0,0,0,0.6); z-index: 9999; cursor: pointer;"></div>
     `;
-    
+
     document.body.appendChild(resultDiv);
-    
+
     // Add hover effect to close button
     const closeBtn = resultDiv.querySelector('button');
-    closeBtn.addEventListener('mouseenter', function() {
+    closeBtn.addEventListener('mouseenter', function () {
         this.style.background = '#2980b9';
     });
-    closeBtn.addEventListener('mouseleave', function() {
+    closeBtn.addEventListener('mouseleave', function () {
         this.style.background = '#3498db';
     });
 }
@@ -3822,15 +3814,15 @@ function showHealthCheckResultWithUserData(success, details, userInfo) {
 function showPDFNotification(message, type = 'info', subtitle = '') {
     const notification = document.createElement('div');
     notification.className = `pdf-notification pdf-notification-${type}`;
-    
-    const icon = type === 'success' 
-        ? '<i class="fas fa-check-circle"></i>' 
+
+    const icon = type === 'success'
+        ? '<i class="fas fa-check-circle"></i>'
         : '<i class="fas fa-exclamation-circle"></i>';
-    
-    const subtitleHTML = subtitle 
-        ? `<div style="font-size: 12px; opacity: 0.9; margin-top: 5px;">${subtitle}</div>` 
+
+    const subtitleHTML = subtitle
+        ? `<div style="font-size: 12px; opacity: 0.9; margin-top: 5px;">${subtitle}</div>`
         : '';
-    
+
     notification.innerHTML = `
         <div style="display: flex; align-items: flex-start; gap: 15px;">
             <div style="font-size: 24px; flex-shrink: 0;">${icon}</div>
@@ -3846,7 +3838,7 @@ function showPDFNotification(message, type = 'info', subtitle = '') {
             </button>
         </div>
     `;
-    
+
     const bgColor = type === 'success' ? '#27ae60' : '#e74c3c';
     notification.style.cssText = `
         position: fixed;
@@ -3862,9 +3854,9 @@ function showPDFNotification(message, type = 'info', subtitle = '') {
         max-width: 400px;
         animation: slideInNotif 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
     `;
-    
+
     document.body.appendChild(notification);
-    
+
     // Auto remove after 5 seconds
     setTimeout(() => {
         if (document.body.contains(notification)) {
@@ -3884,35 +3876,35 @@ function showPDFNotification(message, type = 'info', subtitle = '') {
 
 function initAustriaPDFButton() {
     console.log('🔧 Initializing Austria PDF button...');
-    
+
     const pdfButton = document.querySelector('[data-action="generate-austria-pdf"], [data-action="generate-portugal-pdf"]');
-    
+
     if (pdfButton) {
         console.log('✓ Found Austria PDF button');
-        
+
         pdfButton.replaceWith(pdfButton.cloneNode(true));
         const newButton = document.querySelector('[data-action="generate-austria-pdf"], [data-action="generate-portugal-pdf"]');
-        
-        newButton.addEventListener('click', function(e) {
+
+        newButton.addEventListener('click', function (e) {
             e.preventDefault();
             e.stopPropagation();
-            
+
             console.log('🖱️ Austria PDF button clicked');
-            
+
             const urlParams = new URLSearchParams(window.location.search);
             const recordId = urlParams.get('id');
             const recordType = urlParams.get('type') || 'traveler';
-            
+
             console.log('📋 Current record:', { id: recordId, type: recordType });
-            
+
             if (recordId) {
                 generateAustriaPDF(recordId, recordType);
             } else {
-                showPDFNotification('✗ No record ID found in URL', 'error', 
+                showPDFNotification('✗ No record ID found in URL', 'error',
                     'Please open this page with ?id=XXX parameter');
             }
         });
-        
+
         console.log('✓ Austria PDF button initialized successfully');
     } else {
         console.warn('⚠ Austria PDF button not found in navigation');
@@ -3930,7 +3922,7 @@ function addFloatingAustriaPDFButton() {
         console.log('Floating PDF button already exists');
         return;
     }
-    
+
     const floatingBtn = document.createElement('button');
     floatingBtn.id = 'floating-portugal-pdf-btn';
     floatingBtn.innerHTML = `
@@ -3955,31 +3947,31 @@ function addFloatingAustriaPDFButton() {
         transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
         font-family: inherit;
     `;
-    
+
     // Hover effects
-    floatingBtn.addEventListener('mouseenter', function() {
+    floatingBtn.addEventListener('mouseenter', function () {
         this.style.transform = 'translateY(-4px) scale(1.05)';
         this.style.boxShadow = '0 8px 25px rgba(231, 76, 60, 0.5)';
     });
-    
-    floatingBtn.addEventListener('mouseleave', function() {
+
+    floatingBtn.addEventListener('mouseleave', function () {
         this.style.transform = 'translateY(0) scale(1)';
         this.style.boxShadow = '0 6px 20px rgba(231, 76, 60, 0.4)';
     });
-    
+
     // Click event
-    floatingBtn.addEventListener('click', function() {
+    floatingBtn.addEventListener('click', function () {
         const urlParams = new URLSearchParams(window.location.search);
         const recordId = urlParams.get('id');
         const recordType = urlParams.get('type') || 'traveler';
-        
+
         if (recordId) {
             generateAustriaPDF(recordId, recordType);
         } else {
             showPDFNotification('✗ No record ID found', 'error');
         }
     });
-    
+
     document.body.appendChild(floatingBtn);
     console.log('✓ Floating Austria PDF button added');
 }
@@ -3990,9 +3982,9 @@ function addFloatingAustriaPDFButton() {
 
 // Wait for DOM to be fully loaded, then initialize
 if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', function () {
         console.log('📄 DOM loaded, initializing Austria PDF functionality...');
-        
+
         setTimeout(() => {
             initAustriaPDFButton();
             // addFloatingAustriaPDFButton();
@@ -4077,59 +4069,59 @@ function generateCountryPDF(recordId, recordType, countryName) {
         },
         body: JSON.stringify(requestPayload)
     })
-    .then(response => {
-        console.log('📡 Response received - Status:', response.status);
+        .then(response => {
+            console.log('📡 Response received - Status:', response.status);
 
-        // Remove loading
-        const loading = document.getElementById('pdf-generation-loading');
-        if (loading) document.body.removeChild(loading);
+            // Remove loading
+            const loading = document.getElementById('pdf-generation-loading');
+            if (loading) document.body.removeChild(loading);
 
-        if (!response.ok) {
-            return response.json().then(errorData => {
-                const errorMsg = errorData.error || errorData.message || `Server error: ${response.status}`;
-                throw new Error(errorMsg);
-            }).catch(jsonErr => {
-                if (jsonErr.message && !jsonErr.message.includes('Server error')) {
-                    throw jsonErr;
-                }
-                throw new Error(`Server error: ${response.status} - ${response.statusText}`);
-            });
-        }
+            if (!response.ok) {
+                return response.json().then(errorData => {
+                    const errorMsg = errorData.error || errorData.message || `Server error: ${response.status}`;
+                    throw new Error(errorMsg);
+                }).catch(jsonErr => {
+                    if (jsonErr.message && !jsonErr.message.includes('Server error')) {
+                        throw jsonErr;
+                    }
+                    throw new Error(`Server error: ${response.status} - ${response.statusText}`);
+                });
+            }
 
-        return response.blob();
-    })
-    .then(blob => {
-        console.log('✅ PDF received! Size:', blob.size, 'bytes');
+            return response.blob();
+        })
+        .then(blob => {
+            console.log('✅ PDF received! Size:', blob.size, 'bytes');
 
-        const url = window.URL.createObjectURL(blob);
-        const timestamp = new Date().toISOString().split('T')[0];
-        const filename = `${countryName}_Visa_${timestamp}.pdf`;
+            const url = window.URL.createObjectURL(blob);
+            const timestamp = new Date().toISOString().split('T')[0];
+            const filename = `${countryName}_Visa_${timestamp}.pdf`;
 
-        // Download the PDF
-        const downloadLink = document.createElement('a');
-        downloadLink.href = url;
-        downloadLink.download = filename;
-        document.body.appendChild(downloadLink);
-        downloadLink.click();
-        document.body.removeChild(downloadLink);
+            // Download the PDF
+            const downloadLink = document.createElement('a');
+            downloadLink.href = url;
+            downloadLink.download = filename;
+            document.body.appendChild(downloadLink);
+            downloadLink.click();
+            document.body.removeChild(downloadLink);
 
-        // Also open in new tab
-        window.open(url, '_blank');
+            // Also open in new tab
+            window.open(url, '_blank');
 
-        setTimeout(() => window.URL.revokeObjectURL(url), 100);
+            setTimeout(() => window.URL.revokeObjectURL(url), 100);
 
-        // Show success notification
-        showCountryPDFSuccess(countryName, filename);
-    })
-    .catch(error => {
-        console.error('❌ PDF Generation Failed:', error);
+            // Show success notification
+            showCountryPDFSuccess(countryName, filename);
+        })
+        .catch(error => {
+            console.error('❌ PDF Generation Failed:', error);
 
-        const loading = document.getElementById('pdf-generation-loading');
-        if (loading) document.body.removeChild(loading);
+            const loading = document.getElementById('pdf-generation-loading');
+            if (loading) document.body.removeChild(loading);
 
-        alert(`❌ PDF Generation Failed!\n\n${error.message}`);
-        showCountryPDFError(error.message);
-    });
+            alert(`❌ PDF Generation Failed!\n\n${error.message}`);
+            showCountryPDFError(error.message);
+        });
 }
 
 // Success notification for country PDF
@@ -4231,7 +4223,7 @@ function initUniversalPDFButton() {
         button.replaceWith(button.cloneNode(true));
         const newButton = document.querySelector('[data-action="generate-pdf"]');
 
-        newButton.addEventListener('click', function(e) {
+        newButton.addEventListener('click', function (e) {
             e.preventDefault();
             e.stopPropagation();
 
@@ -4303,62 +4295,62 @@ function generateUniversalPDF(recordId, recordType) {
         },
         body: JSON.stringify(requestPayload)
     })
-    .then(response => {
-        console.log('📡 Response received - Status:', response.status);
+        .then(response => {
+            console.log('📡 Response received - Status:', response.status);
 
-        // Remove loading
-        const loading = document.getElementById('pdf-generation-loading');
-        if (loading) document.body.removeChild(loading);
+            // Remove loading
+            const loading = document.getElementById('pdf-generation-loading');
+            if (loading) document.body.removeChild(loading);
 
-        if (!response.ok) {
-            return response.json().then(errorData => {
-                const errorMsg = errorData.error || errorData.message || `Server error: ${response.status}`;
-                throw new Error(errorMsg);
-            }).catch(jsonErr => {
-                if (jsonErr.message && !jsonErr.message.includes('Server error')) {
-                    throw jsonErr;
-                }
-                throw new Error(`Server error: ${response.status} - ${response.statusText}`);
-            });
-        }
+            if (!response.ok) {
+                return response.json().then(errorData => {
+                    const errorMsg = errorData.error || errorData.message || `Server error: ${response.status}`;
+                    throw new Error(errorMsg);
+                }).catch(jsonErr => {
+                    if (jsonErr.message && !jsonErr.message.includes('Server error')) {
+                        throw jsonErr;
+                    }
+                    throw new Error(`Server error: ${response.status} - ${response.statusText}`);
+                });
+            }
 
-        return response.blob();
-    })
-    .then(blob => {
-        console.log('✅ PDF received! Size:', blob.size, 'bytes');
+            return response.blob();
+        })
+        .then(blob => {
+            console.log('✅ PDF received! Size:', blob.size, 'bytes');
 
-        const url = window.URL.createObjectURL(blob);
-        const timestamp = new Date().toISOString().split('T')[0];
+            const url = window.URL.createObjectURL(blob);
+            const timestamp = new Date().toISOString().split('T')[0];
 
-        // Get country name from recordData if available for filename
-        const countryName = (window.recordData?.personal?.travel_country || 'Visa').replace(/[^a-zA-Z0-9]/g, '_');
-        const filename = `${countryName}_Application_${timestamp}.pdf`;
+            // Get country name from recordData if available for filename
+            const countryName = (window.recordData?.personal?.travel_country || 'Visa').replace(/[^a-zA-Z0-9]/g, '_');
+            const filename = `${countryName}_Application_${timestamp}.pdf`;
 
-        // Download the PDF
-        const downloadLink = document.createElement('a');
-        downloadLink.href = url;
-        downloadLink.download = filename;
-        document.body.appendChild(downloadLink);
-        downloadLink.click();
-        document.body.removeChild(downloadLink);
+            // Download the PDF
+            const downloadLink = document.createElement('a');
+            downloadLink.href = url;
+            downloadLink.download = filename;
+            document.body.appendChild(downloadLink);
+            downloadLink.click();
+            document.body.removeChild(downloadLink);
 
-        // Also open in new tab
-        window.open(url, '_blank');
+            // Also open in new tab
+            window.open(url, '_blank');
 
-        setTimeout(() => window.URL.revokeObjectURL(url), 100);
+            setTimeout(() => window.URL.revokeObjectURL(url), 100);
 
-        // Show success notification
-        showUniversalPDFSuccess(filename);
-    })
-    .catch(error => {
-        console.error('❌ PDF Generation Failed:', error);
+            // Show success notification
+            showUniversalPDFSuccess(filename);
+        })
+        .catch(error => {
+            console.error('❌ PDF Generation Failed:', error);
 
-        const loading = document.getElementById('pdf-generation-loading');
-        if (loading) document.body.removeChild(loading);
+            const loading = document.getElementById('pdf-generation-loading');
+            if (loading) document.body.removeChild(loading);
 
-        alert(`❌ PDF Generation Failed!\n\n${error.message}`);
-        showCountryPDFError(error.message);
-    });
+            alert(`❌ PDF Generation Failed!\n\n${error.message}`);
+            showCountryPDFError(error.message);
+        });
 }
 
 // Success notification
@@ -4412,7 +4404,7 @@ function showUniversalPDFSuccess(filename) {
 
 // Initialize universal PDF button on DOM load
 if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', function () {
         setTimeout(() => {
             initUniversalPDFButton();
         }, 600);
