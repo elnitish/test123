@@ -29,10 +29,8 @@ const app = express();
 
 app.use(cors({
   origin: [
-    "https://booking.visad.co.uk",
-    "https://visad.co.uk",
+    "https://doc.visad.co.uk",
     "http://localhost:3000",
-    "https://vault.visad.co.uk"
   ],
   credentials: true,
   allowedHeaders: ["Content-Type", "Authorization", "Session-Key", "Accept"],
