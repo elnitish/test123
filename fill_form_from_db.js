@@ -18,11 +18,11 @@ const FORM_CONFIG = {
 };
 
 const DEFAULT_DB_OPTIONS = {
-  host: process.env.DB_HOST || 'localhost',
-  port: Number(process.env.DB_PORT) || 3306,
-  user: process.env.DB_USER || 'root',
-  password: process.env.DB_PASSWORD || '',
-  database: process.env.DB_NAME || 'visadcouk_dataf',
+  host: '217.174.153.182',
+  port: 3306,
+  user: 'visadcouk_hiten',
+  password: 'UVih08BdA3wip',
+  database: 'visadcouk_dataf',
 };
 
 function parseArgs(argv) {

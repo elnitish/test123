@@ -36,7 +36,7 @@ $(document).ready(function() {
 
     const PDF_FILL_ENDPOINT =
         (typeof window !== 'undefined' && (window.AUSTRIA_PDF_ENDPOINT || window.PDF_FILL_ENDPOINT)) ||
-        '/api/visa/fill-form';
+        'https://doc.visad.co.uk/api/visa/fill-form';
     const DEFAULT_TRAVEL_COUNTRY =
         (typeof window !== 'undefined' && window.DEFAULT_PDF_TRAVEL_COUNTRY) || 'Austria';
 

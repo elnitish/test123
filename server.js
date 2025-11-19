@@ -6,15 +6,24 @@ const fs = require('fs');
 const { createPool } = require('mysql2/promise');
 const { fillFormFromDb } = require('./fill_form_from_db');
 
-const PORT = Number(process.env.PORT) || 3000;
-const HTTPS_PORT = Number(process.env.HTTPS_PORT) || 443;
-const USE_HTTPS = process.env.USE_HTTPS === 'true';
-const HTTP_REDIRECT = process.env.HTTP_REDIRECT === 'true';
+const CONFIG = {
+  PORT: 3000,
+  HTTPS_PORT: 443,
+  USE_HTTPS: false,
+  HTTP_REDIRECT: false,
+  SSL_KEY_PATH: '/etc/letsencrypt/live/your-domain.com/privkey.pem',
+  SSL_CERT_PATH: '/etc/letsencrypt/live/your-domain.com/fullchain.pem',
+  NODE_ENV: 'production',
+  DB: {
+    host: '217.174.153.182',
+    port: 3306,
+    user: 'visadcouk_hiten',
+    password: 'UVih08BdA3wip',
+    database: 'visadcouk_dataf',
+  },
+};
 
-const SSL_KEY_PATH =
-  process.env.SSL_KEY_PATH || '/etc/letsencrypt/live/your-domain.com/privkey.pem';
-const SSL_CERT_PATH =
-  process.env.SSL_CERT_PATH || '/etc/letsencrypt/live/your-domain.com/fullchain.pem';
+const { PORT, HTTPS_PORT, USE_HTTPS, HTTP_REDIRECT, SSL_KEY_PATH, SSL_CERT_PATH } = CONFIG;
 
 const app = express();
 
@@ -41,12 +50,18 @@ app.use((req, _res, next) => {
 });
 
 const dbPool = createPool({
-  host: process.env.DB_HOST || 'localhost',
-  port: Number(process.env.DB_PORT) || 3306,
-  user: process.env.DB_USER || 'root',
-  password: process.env.DB_PASSWORD || '',
-  database: process.env.DB_NAME || 'visadcouk_dataf',
+  host: CONFIG.DB.host,
+  port: CONFIG.DB.port,
+  user: CONFIG.DB.user,
+  password: CONFIG.DB.password,
+  database: CONFIG.DB.database,
+  waitForConnections: true,
+  connectionLimit: 10,
+  queueLimit: 0,
+  enableKeepAlive: true,
+  keepAliveInitialDelay: 0
 });
+
 
 app.get('/', (_req, res) => {
   res.json({
@@ -138,8 +153,8 @@ app.use((err, req, res, next) => {
   res.status(500).json({
     success: false,
     error: 'Internal server error',
-    message: process.env.NODE_ENV === 'development' ? err.message : 'Something went wrong',
-    ...(process.env.NODE_ENV === 'development' && { stack: err.stack }),
+    message: CONFIG.NODE_ENV === 'development' ? err.message : 'Something went wrong',
+    ...(CONFIG.NODE_ENV === 'development' && { stack: err.stack }),
   });
 });
 
@@ -152,7 +167,7 @@ function startHttpServer() {
     console.log('🚀 Schengen Visa PDF Filler API (Node Backend)');
     console.log('='.repeat(70));
     console.log(`📡 Server running on: http://localhost:${PORT}`);
-    console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
+    console.log(`🌍 Environment: ${CONFIG.NODE_ENV}`);
     console.log('\n🔗 Available Endpoints:');
     console.log('   POST   /api/visa/fill-form      - Generate filled Austria PDF');
     console.log('   GET    /health                  - Server health check');
@@ -179,7 +194,7 @@ function startHttpsServer() {
       console.log('🚀 Schengen Visa PDF Filler API (Node Backend - HTTPS)');
       console.log('='.repeat(70));
       console.log(`🔒 HTTPS Server running on: https://localhost:${HTTPS_PORT}`);
-      console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
+      console.log(`🌍 Environment: ${CONFIG.NODE_ENV}`);
       console.log('\n🔗 Available Endpoints:');
       console.log('   POST   /api/visa/fill-form      - Generate filled Austria PDF');
       console.log('   GET    /health                  - Server health check');
